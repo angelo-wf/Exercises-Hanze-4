@@ -79,9 +79,9 @@ def get_next(s):
     return final
 
 def heuristic(s, g):
-    # manhattan distance for 4 dirs, pythagorian distance for 8 dirs
+    # top line for 4 dirs, bottom for 8
     return abs(s[0] - g[0]) + abs(s[1] - g[1])
-    # return math.sqrt((abs(s[0] - g[0]) ** 2) + (abs(s[1] - g[1]) ** 2))
+    # return max(abs(s[0] - g[0]), abs(s[1] - g[1]))
 
 def ucs(app):
     frontier = PriorityQueue()
@@ -96,7 +96,6 @@ def ucs(app):
         app.pause()
         if s == cf.GOAL:
             return path
-        visited.add(s)
         for next_s in get_next(s):
             new_cost = get_grid_value(s) + 1 # 1: cost of going to next node
             if (not next_s in visited) or (new_cost < get_grid_value(next_s)):
@@ -118,7 +117,6 @@ def astar(app):
         app.pause()
         if s == cf.GOAL:
             return path
-        visited.add(s)
         for next_s in get_next(s):
             new_cost = get_grid_value(s) + 1 # 1: cost of going to next node
             if (not next_s in visited) or (new_cost < get_grid_value(next_s)):
