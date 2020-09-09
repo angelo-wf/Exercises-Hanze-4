@@ -109,6 +109,7 @@ def solve(pos, count, clue_index):
     if b[pos] != 0 and b[pos] == count:
         # spot filled with correct number
         valid = True
+
     if valid:
         b[pos] = count
     else:
@@ -125,9 +126,12 @@ def solve(pos, count, clue_index):
     #check all neighbors
     for n in neighbors(pos):
         solve(n, count + 1, clue_index)
+
+    # remove the value we put down, if it was not a clue
     if b[pos] not in clues:
         b[pos] = 0
 
+# complexity: O(n^2); (with n as board size)
 
 pos = b.index(1)
 solve(pos, 1, 0)

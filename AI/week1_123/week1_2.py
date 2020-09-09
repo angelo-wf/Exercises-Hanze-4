@@ -29,7 +29,7 @@ def create_prefix_set(words):
         for l in range(1, len(w)):
             final.add(w[0:l])
     return final
-    
+
 def get_neighbors(row, col):
     neighbors = []
     neighbors.append(((row - 1) % size, col))
@@ -38,7 +38,7 @@ def get_neighbors(row, col):
     neighbors.append((row, (col + 1) % size))
     return neighbors
 
-def solve(row, col, path, done):
+def solve(row, col, path, done, found):
     # for each neightbor, check if the path is in the words array and print it
     # then, check if it is in the prefix array, and then solve for that state
     done.append((row, col))
@@ -48,17 +48,21 @@ def solve(row, col, path, done):
         if s not in done:
             if path in words:
                 print("Found word: {}".format(path))
+                found.append(path)
             if path in prefixes:
-                solve(s[0], s[1], path, done.copy())
+                solve(s[0], s[1], path, done.copy(), found)
         path = path[:-1]
+    return found
 
 def find_words():
+    all = []
     for x in range(size):
         for y in range(size):
             print("starting at {}, {}".format(x, y))
-            solve(x, y, board[x][y], [])
+            solve(x, y, board[x][y], [], all)
+    return all
 
-# The time comlexity is O(n^2)
+# The time comlexity is O(n^2); (with n as board size)
 
 size = 4
 
@@ -68,4 +72,5 @@ prefixes = create_prefix_set(words)
 board = create_board()
 print_board(board)
 
-find_words()
+all_words = find_words()
+print(all_words)

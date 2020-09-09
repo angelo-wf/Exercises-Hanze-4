@@ -59,10 +59,12 @@ def search(app, type):
 
     path = None
     if type == "UC":
+        print("Doing UCS")
         path = ucs(app)
     else:
+        print("Doing A*")
         path = astar(app)
-    app.re_draw()
+    app.re_plot()
     app.draw_path(path)
 
 def get_next(s):
@@ -99,8 +101,8 @@ def ucs(app):
                 visited.add(s) # needed? Slides only show for a-star
                 path[next_s] = s
 
-                app.re_draw()
-                app.draw_path(path, next_s, cf.PATH_C)
+                app.re_plot()
+                app.draw_path(path, next_s)
                 app.pause()
 
 def astar(app):
@@ -119,10 +121,10 @@ def astar(app):
             if (not next_s in visited) or (new_cost < get_grid_value(next_s)):
                 set_grid_value(next_s, new_cost)
                 priority = new_cost + heuristic(next_s, cf.GOAL)
-                frontier.put(next_s, get_grid_value(next_s))
+                frontier.put(next_s, priority)
                 visited.add(s) # needed? Slides only show for a-star
                 path[next_s] = s
 
-                app.re_draw()
-                app.draw_path(path, next_s, cf.PATH_C)
+                app.re_plot()
+                app.draw_path(path, next_s)
                 app.pause()

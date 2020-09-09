@@ -4,7 +4,7 @@
 BG_C    = '#FDF6E3'
 GRID_C  = '#542437'
 BLOCK_C = 'red'
-PATH_C  = '#8888ff'
+PATH_C  = 'lightblue'
 FINAL_C = 'blue'
 START_C = '#C7F464'
 GOAL_C  = 'yellow'
@@ -19,3 +19,6 @@ CELL  = 25 # size of cell/square in pixels
 W  = (SIZE-1) * CELL # width of grid in pixels
 H  = W # height of grid
 TR = 10 # translate/move the grid, upper left is 10,10
+
+BOX = 8 # size of big box (start, end, barrier)
+SBOX = 4 # size of small box (visited)

@@ -10,7 +10,7 @@ def get_next_states(state):
     if 'F' in state[1]:
         source = 1
         dest = 0
-    
+
     # going right
     for p in possible:
         if p in state[source]:
@@ -54,7 +54,7 @@ def is_final_state(state):
         return True
     return False
 
-def solve(state, visited):
+def solve(state, visited, finals):
     # if the current state is the final state, print it and return, else, go through each further possible state
     visited.append(copy_state(state))
     # print("solve with state: ", state)
@@ -65,17 +65,20 @@ def solve(state, visited):
         for s in visited:
             print_state(s)
         print("---")
+        finals.append(visited.copy())
     else:
         for s in get_next_states(state):
             if is_valid(s):
                 # print("Valid next state: ", s)
                 if s not in visited:
-                    solve(s, visited.copy())
+                    solve(s, visited.copy(), finals)
+    return finals
 
 state = ({'F', 'G', 'C', 'W'}, set())
-solve(state, [])
+solutions = solve(state, [], [])
+print(solutions)
 
-# The time comlexity is O(2^n)
+# The time comlexity is O(2^n); (with n as amount of items)
 
 # def amount_of_options(n):
 #     sum = 0
