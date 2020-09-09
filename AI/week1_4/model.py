@@ -67,19 +67,21 @@ def search(app, type):
     app.draw_path(path)
 
 def get_next(s):
+    # xs = [1, 1, 1, 0, 0, -1, -1, -1]
+    # ys = [1, 0, -1, 1, -1, 1, 0, -1]
+    xs = [1, 0, -1, 0]
+    ys = [0, 1, 0, -1]
     final = []
-    if s[0] > 0 and get_grid_value((s[0] - 1, s[1])) != 'b':
-        final.append((s[0] - 1, s[1]))
-    if s[0] < cf.SIZE - 1 and get_grid_value((s[0] + 1, s[1])) != 'b':
-        final.append((s[0] + 1, s[1]))
-    if s[1] > 0 and get_grid_value((s[0], s[1] - 1)) != 'b':
-        final.append((s[0], s[1] - 1))
-    if s[1] < cf.SIZE - 1 and get_grid_value((s[0], s[1] + 1)) != 'b':
-        final.append((s[0], s[1] + 1))
+    for i in range(len(xs)):
+        n = (s[0] + xs[i], s[1] + ys[i])
+        if n[0] >= 0 and n[0] < cf.SIZE and n[1] >= 0 and n[1] < cf.SIZE and get_grid_value(n) != 'b':
+            final.append(n)
     return final
 
 def heuristic(s, g):
+    # manhattan distance for 4 dirs, pythagorian distance for 8 dirs
     return abs(s[0] - g[0]) + abs(s[1] - g[1])
+    # return math.sqrt((abs(s[0] - g[0]) ** 2) + (abs(s[1] - g[1]) ** 2))
 
 def ucs(app):
     frontier = PriorityQueue()
@@ -100,7 +102,7 @@ def ucs(app):
             if (not next_s in visited) or (new_cost < get_grid_value(next_s)):
                 set_grid_value(next_s, new_cost)
                 frontier.put(next_s, get_grid_value(next_s))
-                visited.add(s) # needed? Slides only show for a-star
+                visited.add(next_s) # needed! Slides only show for a-star (which is wrong)
                 path[next_s] = s
 
 def astar(app):
@@ -123,5 +125,5 @@ def astar(app):
                 set_grid_value(next_s, new_cost)
                 priority = new_cost + heuristic(next_s, cf.GOAL)
                 frontier.put(next_s, priority)
-                visited.add(s) # needed? Slides only show for a-star
+                visited.add(next_s)
                 path[next_s] = s
