@@ -83,7 +83,7 @@ class MainApp(tk.Frame):
             if not START_FLAG:
                 self.re_plot()
             START_FLAG = False
-            mo.search(self, cf.START, cf.GOAL)
+            mo.search(self, self.alg.get())
 
         start_button = tk.Button(lf1, text="Start", command=start_search, width=10)
         start_button.grid(row=1, column=1, sticky='w', padx=5, pady=5)
@@ -91,7 +91,7 @@ class MainApp(tk.Frame):
         def select_alg():
             # print selected algorithm
             print('algorithm =', self.alg.get())
-        
+
         # create a single radio button and bind it to variable and command
         r1_button = tk.Radiobutton(lf1, text='UC', variable=self.alg, value='UC', command=select_alg)
         r1_button.grid(column=1, row=3, columnspan=2, sticky='w')
@@ -125,7 +125,7 @@ class MainApp(tk.Frame):
         box2.grid(column=1, row=4, sticky='ew')
         box2['values'] = tuple(str(i) for i in range(5)) # can select 0..4
         box2.current(2) # set to 2
-        box2.bind("<<ComboboxSelected>>", box_update2)  
+        box2.bind("<<ComboboxSelected>>", box_update2)
 
     def re_plot(self):
         # (re)paint grid and nodes
@@ -136,11 +136,24 @@ class MainApp(tk.Frame):
         self.plot_node(cf.START, color=cf.START_C)
         self.plot_node(cf.GOAL, color=cf.GOAL_C)
 
-    def draw_path(self, path):
-        current = cf.GOAL
+    def re_draw(self):
+        # (re)paint grid and nodes, without changing board
+        self.canvas.delete("all")
+        self.make_grid()
+        for x in range(cf.SIZE):
+            for y in range(cf.SIZE):
+                if mo.get_grid_value((x, y)) == 'b':
+                    self.plot_node((x, y), color=cf.BLOCK_C)
+
+        # show start and goal nodes
+        self.plot_node(cf.START, color=cf.START_C)
+        self.plot_node(cf.GOAL, color=cf.GOAL_C)
+
+    def draw_path(self, path, node = cf.GOAL, color = cf.FINAL_C):
+        current = node
         while current != cf.START:
             prev = path[current]
-            self.plot_line_segment(prev[0], prev[1], current[0], current[1], color=cf.FINAL_C)
+            self.plot_line_segment(prev[0], prev[1], current[0], current[1], color=color)
             current = prev
 
 # create and start GUI
