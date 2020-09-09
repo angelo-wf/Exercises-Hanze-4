@@ -56,7 +56,6 @@ def set_grid_value(node, value):
     grid[node[0]][node[1]] = value
 
 def search(app, type):
-
     path = None
     if type == "UC":
         print("Doing UCS")
@@ -90,6 +89,9 @@ def ucs(app):
     path = {}
     while not frontier.empty():
         s = frontier.get()
+        app.re_plot()
+        app.draw_path(path, s)
+        app.pause()
         if s == cf.GOAL:
             return path
         visited.add(s)
@@ -101,10 +103,6 @@ def ucs(app):
                 visited.add(s) # needed? Slides only show for a-star
                 path[next_s] = s
 
-                app.re_plot()
-                app.draw_path(path, next_s)
-                app.pause()
-
 def astar(app):
     frontier = PriorityQueue()
     frontier.put(cf.START, get_grid_value(cf.START))
@@ -113,6 +111,9 @@ def astar(app):
     path = {}
     while not frontier.empty():
         s = frontier.get()
+        app.re_plot()
+        app.draw_path(path, s)
+        app.pause()
         if s == cf.GOAL:
             return path
         visited.add(s)
@@ -124,7 +125,3 @@ def astar(app):
                 frontier.put(next_s, priority)
                 visited.add(s) # needed? Slides only show for a-star
                 path[next_s] = s
-
-                app.re_plot()
-                app.draw_path(path, next_s)
-                app.pause()
