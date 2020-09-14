@@ -4,7 +4,7 @@ import random
 SIZE = 3 # board dimension (3 = 3x3 board)
 USE_HEURISTIC = True # use heuristic (False = UCS, True = A*)
 
-# state is a tuple of 9 items with empty spot as 0
+# state is a tuple of SIZE*SIZE items with empty spot as 0
 
 def get_next(cur):
     # find where the empty spot is
@@ -151,5 +151,3 @@ print("Path:")
 for item in path:
     print_board(item)
     print("")
-
-# TODO: add heuristic function, make it work for any NxN board
