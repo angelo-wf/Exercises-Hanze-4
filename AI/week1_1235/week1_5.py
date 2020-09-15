@@ -87,9 +87,11 @@ def get_path(path, start, goal):
         current = prev
     return final[::-1]
 
+# based on code from wikipedia:
+# https://en.wikipedia.org/wiki/A*_search_algorithm
 def a_star(start, goal):
-    frontier = set()
-    frontier.add(start)
+    frontier = []
+    frontier.append(start)
     path = {}
     score = {}
     score[start] = 0
@@ -99,7 +101,7 @@ def a_star(start, goal):
         # find the item in frontier whose priority is lowest
         lowest_prio = math.inf
         current = None
-        for item in frontier:
+        for item in frontier[::-1]:
             if priority[item] < lowest_prio:
                 lowest_prio = priority[item]
                 current = item
@@ -114,7 +116,7 @@ def a_star(start, goal):
                 score[neighbor] = new_score
                 priority[neighbor] = new_score + heuristic(neighbor, goal)
                 if not neighbor in frontier:
-                    frontier.add(neighbor)
+                    frontier.append(neighbor)
 
 def create_board():
     board = []

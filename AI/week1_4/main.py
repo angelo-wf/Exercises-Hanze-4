@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import model as mo
 import config as cf
+import math
 
 class MainApp(tk.Frame):
     # frame for the grid (subclass of tk.Frame)
@@ -47,14 +48,14 @@ class MainApp(tk.Frame):
                     if mo.bernoulli_trial(self):
                         mo.set_grid_value(node, 'b') # set as blocked
                     else:
-                        mo.set_grid_value(node, -1) # init costs, -1 means infinite
+                        mo.set_grid_value(node, math.inf) # init costs
                 else:
                     if mo.get_grid_value(node) != 'b':
-                        mo.set_grid_value(node, -1) # init costs, -1 means infinite
+                        mo.set_grid_value(node, math.inf) # init costs
 
         # start and goal cannot be bloking nodes
         mo.set_grid_value(cf.START, 0)
-        mo.set_grid_value(cf.GOAL, -1)
+        mo.set_grid_value(cf.GOAL, math.inf)
 
     def draw_grid(self):
         for x in range(cf.SIZE):
@@ -62,7 +63,7 @@ class MainApp(tk.Frame):
                 node = (x, y)
                 if mo.get_grid_value(node) == 'b':
                     self.plot_node(node, color=cf.BLOCK_C)
-                elif mo.get_grid_value(node) >= 0:
+                elif mo.get_grid_value(node) is not math.inf:
                     self.plot_node(node, color=cf.PATH_C, size=cf.SBOX)
 
     def plot_line_segment(self, x0, y0, x1, y1, color):
