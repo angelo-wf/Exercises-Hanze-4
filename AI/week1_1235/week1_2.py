@@ -19,7 +19,8 @@ def load_words():
     words = []
     with open("words.txt", "r", encoding="cp1250") as f:
         for line in f:
-            words.append(line.strip())
+            word = line.strip()
+            words.append(word)
     print("Loaded {} words".format(len(words)))
     return words
 
