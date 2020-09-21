@@ -141,7 +141,8 @@ reversi = Reversi()
 
 # ----- AI (minimax) -----
 
-MAX_DEPTH = 2
+MAX_DEPTH = 3
+# with a depth of 3 it takes around 3 seconds to find the best move (without a/b pruning)
 WEIGHTS = [
     100, 3, 20, 12, 12, 20, 3, 100,
     3, 1, 6, 6, 6, 6, 1, 3,
@@ -154,45 +155,7 @@ WEIGHTS = [
 ]
 
 # returns ((x, y), score)
-def minimax(board, turn, depth, us):
-    if depth > MAX_DEPTH:
-        # calculate board score
-        score = get_score(board, us)
-        return ((0, 0), score)
-    highest_score = -math.inf
-    highest_move = None
-    lowest_score = math.inf
-    lowest_move = None
-    # check for all possible moves what scores they get
-    for move in get_possible_moves(board, turn):
-        # apply the move, then minimax it for the other player
-        new_board = board.copy()
-        for change in move:
-            new_board[change[1] * 8 + change[0]] = turn
-        result = None
-        if len(get_possible_moves(new_board, 1 if turn == 2 else 2)) > 0:
-            score = minimax(new_board, 1 if turn == 2 else 2, depth + 1, us)[1]
-            result = (move[-1], score) # assumes last in array is the stone that was placed
-        else:
-            # if other player can not move, minimax ourselves instead
-            score = minimax(new_board, turn, depth + 1, us)[1]
-            result = (move[-1], score) # assume last in array is the stone that was placed
-        if result[1] > highest_score:
-            highest_score = result[1]
-            highest_move = result
-        if result[1] < lowest_score:
-            lowest_score = result[1]
-            lowest_move = result
-    if highest_move is None:
-        # there were no moves, get score from board
-        score = get_score(board, us)
-        return ((0, 0), score)
-    if turn == us:
-        return highest_move
-    return lowest_move
-
-# experimental (should give the same results)
-def negamax(board, turn, depth):
+def negamax_ab(board, turn, depth, alpha, beta):
     if depth > MAX_DEPTH:
         # calculate board score
         score = get_score(board, turn)
@@ -207,15 +170,18 @@ def negamax(board, turn, depth):
             new_board[change[1] * 8 + change[0]] = turn
         result = None
         if len(get_possible_moves(new_board, 1 if turn == 2 else 2)) > 0:
-            score = -negamax(new_board, 1 if turn == 2 else 2, depth + 1)[1]
+            score = -negamax_ab(new_board, 1 if turn == 2 else 2, depth + 1, -beta, -alpha)[1]
             result = (move[-1], score) # assumes last in array is the stone that was placed
         else:
             # if other player can not move, minimax ourselves instead
-            score = negamax(new_board, turn, depth + 1)[1]
+            score = negamax_ab(new_board, turn, depth + 1, alpha, beta)[1]
             result = (move[-1], score) # assume last in array is the stone that was placed
         if result[1] > highest_score:
             highest_score = result[1]
             highest_move = result
+        alpha = max(alpha, highest_score)
+        if alpha >= beta:
+            break
     if highest_move is None:
         # there were no moves, get score from board
         score = get_score(board, turn)
@@ -233,11 +199,7 @@ def get_score(board, us):
     return total
 
 def get_best_move(board, player):
-    best = minimax(board, player, 0, player)[0]
-    best2 = negamax(board, player, 0)[0]
-    if best != best2:
-        print("!!!\nMinimax and negamax did not match\n!!!")
-    return best
+    return negamax_ab(board, player, 0, -math.inf, math.inf)[0]
 
 def get_possible_moves(board, turn):
     possible = []
