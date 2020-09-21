@@ -26,7 +26,7 @@ class MainApp(tk.Frame):
         self.init_grid()
         self.board = model.start()    # init model (& add 2 values)
         self.update_grid_cells()      # redraw grid
-        
+
     def init_grid(self):
         background = tk.Frame(self, bg=BACKGROUND_COLOR_GAME, width=SIZE, height=SIZE)
         background.grid() # tk layout manager grid
@@ -52,10 +52,10 @@ class MainApp(tk.Frame):
                     self.grid_cells[i][j].configure(text=str(new_number), bg=BACKGROUND_COLOR_DICT[new_number],
                                                  fg=FOREGROUND_COLOR_DICT.get(new_number, DEFAULT_FOREGROUND_COLOR))
         self.update_idletasks() # redraw widgets
-        
+
     def do_move(self):
-        direction = model.get_random_move()
-        # direction = model.get_expectimax_move(self.board)
+        # direction = model.get_random_move()
+        direction = model.get_expectimax_move(self.board)
         if model.move_exists(self.board):
             self.board = model.play_move(self.board, direction)
             self.update_grid_cells()           # redraw grid

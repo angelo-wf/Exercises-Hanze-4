@@ -1,13 +1,14 @@
 import random
 import itertools
 import math
+import copy
 
 MAX_DEPTH = 3
 
 def merge_left(b):
     # merge the board left
     # this is the funcyoin that is reused in the other merges
-    # b = [[0, 2, 4, 4], [0, 2, 4, 8], [0, 0, 0, 4], [2, 2, 2, 2]]    
+    # b = [[0, 2, 4, 4], [0, 2, 4, 8], [0, 0, 0, 4], [2, 2, 2, 2]]
     def merge(row, acc):
         # recursive helper for merge_left
 
@@ -155,4 +156,61 @@ def get_random_move():
     return random.choice(list(MERGE_FUNCTIONS.keys()))
 
 def get_expectimax_move(b):
-    pass
+    return expectimax(b, 0, 0)[0]
+
+MAX_DEPTH = 4 # still gives mostly acceptable performace (5 would not), and gets to 2048
+WEIGHTS = [
+    [100, 50, 25, 10],
+    [50, 25, 10, 0],
+    [25, 10, 0, -10],
+    [10, 0, -10, -25]
+]
+
+# returns (dir, score)
+def expectimax(b, turn, depth):
+    if depth > MAX_DEPTH or not move_exists(b):
+        # return heuristic for current board
+        return ("left", heuristic(b))
+    if turn == 0:
+        # our turn, we can move in 4 directions
+        # apply each of the moves, and expectimax on the resulting Board
+        max_move = ("none", -math.inf)
+        for dir in ["left", "up", "down", "right"]:
+            new_b = MERGE_FUNCTIONS[dir](b)
+            new_move = (dir, expectimax(new_b, 1, depth + 1)[1])
+            # print(new_move)
+            if new_move[1] > max_move[1]:
+                max_move = new_move
+        return max_move
+    else:
+        # 'game's' turn, open spots * 2 possibilities for spawning a 2 or 4
+        # 2: 90% chance, 4: 10% chance
+        # apply each possibility, and expectimax on the resulating boards
+        new_b = clone_board(b)
+        total = 0
+        count = 0
+        for x in range(4):
+            for y in range(4):
+                if new_b[x][y] == 0:
+                    new_b[x][y] = 2
+                    score = expectimax(new_b, 0, depth + 1)[1]
+                    total += score * 9 # 2: weight of 9
+                    new_b[x][y] = 4
+                    score = expectimax(new_b, 0, depth + 1)[1]
+                    total += score # 4: weight of 1
+                    count += 10 # total weight for both: 10
+        if count == 0:
+            # if there is no room to spawn a new tile, only option is to use current board
+            total = expectimax(new_b, 0, depth + 1)[1]
+            count = 1
+        return ("left", total / count)
+
+def clone_board(b):
+    return copy.deepcopy(b)
+
+def heuristic(b):
+    value = 0
+    for x in range(4):
+        for y in range(4):
+            value += WEIGHTS[x][y] * b[x][y]
+    return value
