@@ -42,19 +42,40 @@ class Reversi:
         if self.turn != 0:
             print("Player {} to move".format(self.turn))
         else:
-            print("Game has ended")
+            print("Game has ended!")
+            counts = self.count_stones()
+            if counts[0] > counts[1]:
+                print("Player 1 won!")
+            elif counts[0] < counts[1]:
+                print("Player 2 won!")
+            else:
+                print("It's a draw!")
 
     def print_board(self):
+        print("  0 1 2 3 4 5 6 7 x")
         for y in range(8):
+            print("{} ".format(y), end="")
             for x in range(8):
                 piece = self.board[y * 8 + x]
                 if piece == 0:
-                    print(".", end="")
+                    print(". ", end="")
                 elif piece == 1:
-                    print("O", end="")
+                    print("O ", end="")
                 elif piece == 2:
-                    print("#", end="")
+                    print("# ", end="")
             print("")
+        print("y")
+
+    def count_stones(self):
+        p1_stones = 0
+        p2_stones = 0
+        for x in range(8):
+            for y in range(8):
+                if self.board[y * 8 + x] == 1:
+                    p1_stones += 1
+                elif self.board[y * 8 + x] == 2:
+                    p2_stones += 1
+        return (p1_stones, p2_stones)
 
     def can_move(self, turn):
         for x in range(8):
@@ -120,7 +141,7 @@ reversi = Reversi()
 
 # ----- AI (minimax) -----
 
-MAX_DEPTH = 4
+MAX_DEPTH = 2
 WEIGHTS = [
     100, 3, 20, 12, 12, 20, 3, 100,
     3, 1, 6, 6, 6, 6, 1, 3,
@@ -144,7 +165,7 @@ def minimax(board, turn, depth, us):
     lowest_move = None
     # check for all possible moves what scores they get
     for move in get_possible_moves(board, turn):
-        # apply it, then minimax it for the other player
+        # apply the move, then minimax it for the other player
         new_board = board.copy()
         for change in move:
             new_board[change[1] * 8 + change[0]] = turn
@@ -170,6 +191,37 @@ def minimax(board, turn, depth, us):
         return highest_move
     return lowest_move
 
+# experimental (should give the same results)
+def negamax(board, turn, depth):
+    if depth > MAX_DEPTH:
+        # calculate board score
+        score = get_score(board, turn)
+        return ((0, 0), score)
+    highest_score = -math.inf
+    highest_move = None
+    # check for all possible moves what scores they get
+    for move in get_possible_moves(board, turn):
+        # apply the move, then minimax it for the other player
+        new_board = board.copy()
+        for change in move:
+            new_board[change[1] * 8 + change[0]] = turn
+        result = None
+        if len(get_possible_moves(new_board, 1 if turn == 2 else 2)) > 0:
+            score = -negamax(new_board, 1 if turn == 2 else 2, depth + 1)[1]
+            result = (move[-1], score) # assumes last in array is the stone that was placed
+        else:
+            # if other player can not move, minimax ourselves instead
+            score = negamax(new_board, turn, depth + 1)[1]
+            result = (move[-1], score) # assume last in array is the stone that was placed
+        if result[1] > highest_score:
+            highest_score = result[1]
+            highest_move = result
+    if highest_move is None:
+        # there were no moves, get score from board
+        score = get_score(board, turn)
+        return ((0, 0), score)
+    return highest_move
+
 def get_score(board, us):
     total = 0
     for x in range(8):
@@ -181,7 +233,11 @@ def get_score(board, us):
     return total
 
 def get_best_move(board, player):
-    return minimax(board, player, 0, player)[0]
+    best = minimax(board, player, 0, player)[0]
+    best2 = negamax(board, player, 0)[0]
+    if best != best2:
+        print("!!!\nMinimax and negamax did not match\n!!!")
+    return best
 
 def get_possible_moves(board, turn):
     possible = []
@@ -196,10 +252,11 @@ def get_possible_moves(board, turn):
 
 reversi.start()
 while True:
-    print("Move: ", end="")
-    move = input().split(",")
-    (x, y) = tuple(move)
-    reversi.do_move(int(x), int(y))
+    while reversi.turn == 1:
+        print("Move (\"x,y\"): ", end="")
+        move = input().split(",")
+        (x, y) = tuple(move)
+        reversi.do_move(int(x), int(y))
     while reversi.turn == 2:
         move = get_best_move(reversi.board.copy(), 2)
         print("AI did move: ({}, {})".format(move[0], move[1]))
