@@ -109,8 +109,6 @@ def ucs(puzzle):
                 i += 1
                 visited.append(next_p) 
 
-
-
 def astar(app):
     pass
 
