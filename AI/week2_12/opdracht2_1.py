@@ -22,25 +22,25 @@ def alltours(cities):
     # return a list of tours (a list of lists), each tour a permutation of cities,
     # and each one starting with the same city
     # cities is a set, sets don't support indexing
-    start = next(iter(cities)) 
+    start = next(iter(cities))
     return [[start] + list(rest)
             for rest in itertools.permutations(cities - {start})]
 
 def tour_length(tour):
     # the total of distances between each pair of consecutive cities in the tour
-    return sum(distance(tour[i], tour[i-1]) 
+    return sum(distance(tour[i], tour[i-1])
                for i in range(len(tour)))
 
 def make_cities(n, width=1000, height=1000):
     # make a set of n cities, each with random coordinates within a rectangle (width x height).
 
-    random.seed() # the current system time is used as a seed
+    random.seed(5) # the current system time is used as a seed
     # note: if we use the same seed, we get the same set of cities
 
     return frozenset(City(random.randrange(width), random.randrange(height))
                      for c in range(n))
 
-def plot_tour(tour): 
+def plot_tour(tour):
     # plot the cities as circles and the tour as lines between them
     points = list(tour) + [tour[0]]
     plt.plot([p.x for p in points], [p.y for p in points], 'bo-')
@@ -84,7 +84,7 @@ def get_intersecting_roads(tour):
                     for r in intersecting_roads:
                         if roads[0] == r[1]:
                             added = True
-                    if not added:        
+                    if not added:
                         intersecting_roads.append(roads)
     return intersecting_roads
 
@@ -113,56 +113,55 @@ def dir(a, b, c):
        return 0 # collinear
     elif val < 0:
         return 2 # anti-clockwise
-    return 1 # clockwise 
+    return 1 # clockwise
 
 def on_line(road, city):
     return city.x <= max(road[0].x, road[1].x) and city.x <= min(road[0].x, road[1].x) and city.y <= max(road[0].y, road[1].y) and city.y <= min(road[0].y, road[1].y)
 
-def two_opt_swap(tour, i, j): 
+def two_opt_swap(tour, i, j):
+    # new_tour = tour[:i]
+    # new_tour.extend(reversed(tour[i:j]))
+    # new_tour.extend(tour[j:])
     new_tour = tour[:i]
-    new_tour.extend(reversed(tour[i:j]))
-    new_tour.extend(tour[j:])
+    new_tour.extend(reversed(tour[i:j + 1]))
+    new_tour.extend(tour[j + 1:])
     return new_tour
-    
+
 def two_opt(cities):
     tour = nearest_neighbor(cities)
     intersecting_roads = get_intersecting_roads(tour)
-    print(tour)
-    print(len(tour))
-    print(intersecting_roads, len(intersecting_roads))
+    # print(tour)
+    # print(len(tour))
+    # print(intersecting_roads, len(intersecting_roads))
+    print("intersections: {}".format(len(intersecting_roads)))
     for roads in intersecting_roads:
-        min_index = min(tour.index(roads[0][0]), tour.index(roads[1][1]))
-        max_index = max(tour.index(roads[0][0]), tour.index(roads[1][1]))
+        # min_index = min(tour.index(roads[0][0]), tour.index(roads[1][1]))
+        # max_index = max(tour.index(roads[0][0]), tour.index(roads[1][1]))
+        min_index = tour.index(roads[0][1])
+        max_index = tour.index(roads[1][0])
         tour = two_opt_swap(tour, min_index, max_index)
         # print(tour)
-        print(len(tour))
+        # print(len(tour))
     return tour
-  
-print(City(x=335, y=77) == City(x=335, y=77))
-print(do_intersect(((City(x=400, y=150), City(x=400, y=100)), (City(x=300, y=200), City(x=450, y=200)))))
+
+# print(City(x=335, y=77) == City(x=335, y=77))
+# print(do_intersect(((City(x=400, y=150), City(x=400, y=100)), (City(x=300, y=200), City(x=450, y=200)))))
 # plot_tsp(try_all_tours, make_cities(100))
-# plot_tsp(nearest_neighbor, make_cities(100))
-plot_tsp(two_opt, make_cities(500))
+plot_tsp(nearest_neighbor, make_cities(25))
+plot_tsp(two_opt, make_cities(25))
 
 # A.
 # using seed n = 10
 # optimal tour has length 2521.9
 # nn tour has length 3230.6
-# difference in % = 28.1 
+# difference in % = 28.1
 
 # B.
 # using 500 cities nn takes 0.117s
 # tour has length 19447.7
 
 # C.
-# using 100 cities, there are 6 "intersecting roads" 
+# using 100 cities, there are 6 "intersecting roads"
 # You can find "intersecting roads" by ...
-# You don't have to check if the route is shorter, 
+# You don't have to check if the route is shorter,
 # because removing a "intersecting roads" while always be shorter in this case by ysing equal weigths
-
-
-
-
-
-
-
