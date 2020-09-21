@@ -177,8 +177,10 @@ def expectimax(b, turn, depth):
         max_move = ("none", -math.inf)
         for dir in ["left", "up", "down", "right"]:
             new_b = MERGE_FUNCTIONS[dir](b)
+            if boards_equal(b, new_b) and not has_empty_spot(new_b):
+                # this move won't do anything (boards the same, and no spot for spawning new tile)
+                continue
             new_move = (dir, expectimax(new_b, 1, depth + 1)[1])
-            # print(new_move)
             if new_move[1] > max_move[1]:
                 max_move = new_move
         return max_move
@@ -207,6 +209,20 @@ def expectimax(b, turn, depth):
 
 def clone_board(b):
     return copy.deepcopy(b)
+
+def boards_equal(b, new_b):
+    for x in range(4):
+        for y in range(4):
+            if b[x][y] != new_b[x][y]:
+                return False
+    return True
+
+def has_empty_spot(b):
+    for x in range(4):
+        for y in range(4):
+            if b[x][y] == 0:
+                return True
+    return False
 
 def heuristic(b):
     value = 0
