@@ -93,5 +93,7 @@ search(create_board(), 0)
 
 print_solutions(solutions)
 
-# B.
+# B. Eerste oplossing gevonden na 65 recursive calls
+
+# C.
 
