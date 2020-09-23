@@ -14,10 +14,17 @@ def print_board(board):
     print("\t{}\t{}\t{}\t".format(board[4], board[5], board[6]))
     print("\t\t{}\t\t".format(board[7]))
 
+def print_solutions(solutions):
+    for solution in solutions:
+        print("Found solution after {} iterations".format(solution[1]))
+        print_board(solution[0])
+    print("Found {} solutions".format(len(solutions)))
 
-def create_permutations_iter():
+
+def create_permutations():
     cards = ['A', 'A', 'H', 'H', 'V', 'V', 'B', 'B']
-    permutations = itertools.permutations(cards)
+    permutations = set(itertools.permutations(cards))
+    print(len(permutations))
     return permutations
 
 def get_neighbors(board, i):
@@ -63,17 +70,19 @@ def test_board(board):
     return True
 
 def test_all():
-    permutations_iter = create_permutations_iter()
-    count = 0
-    for permutation in permutations_iter:
-        count += 1
+    permutations = create_permutations()
+    iterations_count = 0
+    solutions = []
+    for permutation in permutations:
+        iterations_count  += 1
         board = create_board(permutation) 
         if test_board(board):
-            print("Found solution after {} iterations".format(count))
-            print_board(board)
+            if not board in solutions:
+                solutions.append((board, iterations_count))
+    print_solutions(solutions)
 
 test_all()
 
 # A. 
-# 1. Er zijn 8! (40320) permutaties mogelijk 
-# 2. Er moeten 12795 iteratie worden gedaan
+# 1. Er zijn 2520 permutaties mogelijk 
+# 2. Er moeten 1582 iteraties worden gedaan voor de eerste oplossing is gevonden

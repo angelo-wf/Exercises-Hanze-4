@@ -1,23 +1,27 @@
-import itertools
+
+import copy
 
 
-def create_board(permutation):
+def create_board():
     board = {}
-    for i in range(len(permutation)):
-        board[i] = permutation[i]
+    for i in range(8):
+        board[i] = ''
     return board
+
+def print_solutions(solutions):
+    for solution in solutions:
+        print("Found solution after {} recursive calls:".format(solution[1]))
+        print_board(solution[0])
+    print("Found {} solutions".format(len(solutions)))
+
+def copy_board(board):
+    return copy.deepcopy(board)
 
 def print_board(board):
     print("\t\t{}\t\t".format(board[0]))
     print("{}\t{}\t{}\t\t".format(board[1], board[2], board[3]))
     print("\t{}\t{}\t{}\t".format(board[4], board[5], board[6]))
     print("\t\t{}\t\t".format(board[7]))
-
-
-def create_permutations_iter():
-    cards = ['A', 'A', 'H', 'H', 'V', 'V', 'B', 'B']
-    permutations = itertools.permutations(cards)
-    return permutations
 
 def get_neighbors(board, i):
     neighbors = {
@@ -32,8 +36,13 @@ def get_neighbors(board, i):
     }
     return [board[n] for n in neighbors[i]]
 
+def two_card_in_board(board, card):
+    return list(board.values()).count(card) == 2
+
 
 def test_card(card, neighbors):
+    if '' in neighbors:
+        return True
     if card in neighbors:
         # twee kaarten van dezelfde soort mogen geen buren zijn
         return False
@@ -61,17 +70,28 @@ def test_board(board):
             return False
     return True
 
-def test_all():
-    permutations_iter = create_permutations_iter()
-    count = 0
-    for permutation in permutations_iter:
-        count += 1
-        board = create_board(permutation) 
-        if test_board(board):
-            print("Found solution after {} iterations".format(count))
-            print_board(board)
+def search(board, i):
+    solution = None
+    global recursive_calls
+    recursive_calls += 1
+    for card in ['A', 'H', 'V', 'B']:
+        if two_card_in_board(board, card):
+            continue
+        new_board = copy_board(board)
+        new_board[i] = card
+        if test_board(new_board):
+            if i < 7:
+                solution = search(new_board, i + 1)
+            else:
+                solutions.append((new_board, recursive_calls))
+    return solution 
+                
+solutions = []
+recursive_calls = 0
 
-test_all()
+search(create_board(), 0)
+
+print_solutions(solutions)
 
 # B.
 
