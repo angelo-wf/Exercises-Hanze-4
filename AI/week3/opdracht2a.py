@@ -24,7 +24,6 @@ def print_solutions(solutions):
 def create_permutations():
     cards = ['A', 'A', 'H', 'H', 'V', 'V', 'B', 'B']
     permutations = set(itertools.permutations(cards))
-    print(len(permutations))
     return permutations
 
 def get_neighbors(board, i):
