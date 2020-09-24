@@ -54,8 +54,7 @@ def fill_grid(grid, string):
         char = string[i]
         if char in chars:
             grid[loc] = {int(char)}
-        loc = increment_loc(grid, loc)
-
+        loc = increment_loc(loc)
 
 def is_valid(grid, loc, v):
     for peer in peers[loc]:
@@ -70,20 +69,12 @@ def is_full(grid):
                 return False
     return True
 
-def first_loc(grid):
-    return increment_loc(grid, (8, -1))
-
-def increment_loc(grid, loc):
+def increment_loc(loc):
     x, y = loc
-    while(True):
-        x += 1
-        if x >= 9:
-            x = 0
-            y += 1
-        if y >= 9:
-            break # at end
-        if len(grid[(x, y)]) > 1:
-            break # continue until next empty spot
+    x += 1
+    if x >= 9:
+        x = 0
+        y += 1
     return (x, y)
 
 def get_next_loc(grid):
@@ -129,11 +120,10 @@ def make_arc_consistent(grid, loc, v):
                 changed = True
     if changed:
         # we changed, check for other values with only one option
-        for x in range(9):
-            for y in range(9):
-                if (x, y) != loc and len(grid[(x, y)]) == 1:
-                    if not make_arc_consistent(grid, (x, y), next(iter(grid[(x, y)]))):
-                        return False
+        for peer in peers[loc]:
+            if peer != loc and len(grid[peer]) == 1:
+                if not make_arc_consistent(grid, peer, next(iter(grid[peer]))):
+                    return False
     return True
 
 
@@ -161,13 +151,6 @@ slist[18]= '3.6.7...........518.........1.4.5...7.....6.....2......2.....4.....8
 slist[19]= '1.....3.8.7.4..............2.3.1...........958.........5.6...7.....8.2...4.......'
 
 create_grid_and_peers()
-
-# fill_grid(grid, "1......2..4..3..")
-# print_grid(grid)
-# start_time = time.time()
-# solve(grid, first_loc(grid))
-# taken_time = time.time() - start_time
-# print("Took {} seconds".format(taken_time))
 
 for i, puzzle in enumerate(slist):
     fill_grid(grid, puzzle)
