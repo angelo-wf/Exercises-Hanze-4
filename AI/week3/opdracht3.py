@@ -18,10 +18,10 @@ def cross(A, B):
 digits = '123456789'
 rows   = 'ABCDEFGHI'
 cols   = digits
-cells  = cross(rows, cols) # for 3x3 81 cells A1..9, B1..9, C1..9, ... 
+cells  = cross(rows, cols) # for 3x3 81 cells A1..9, B1..9, C1..9, ...
 
 # unit = a row, a column, a box; list of all units
-unit_list = ([cross(r, cols) for r in rows] +                             # 9 rows 
+unit_list = ([cross(r, cols) for r in rows] +                             # 9 rows
              [cross(rows, c) for c in cols] +                             # 9 cols
              [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]) # 9 units
 # peers is a dict {cell : list of peers}
@@ -51,12 +51,12 @@ def display(grid):
         for c in cols:
             v = grid[r+c]
             # avoid the '123456789'
-            if v == '123456789': 
+            if v == '123456789':
                 v = '.'
             print (''.join(v), end=' ')
             if c == '3' or c == '6': print('|', end='')
         print()
-        if r == 'C' or r == 'F': 
+        if r == 'C' or r == 'F':
             print('-------------------')
     print()
 
@@ -96,7 +96,7 @@ def find_unfilled_cell(grid):
 
 def solve(grid, count):
     # backtracking search a solution (DFS)
-    print(count)
+    # print(count)
     if all_cells_have_one_value(grid):
         display(grid)
         return True
@@ -124,7 +124,7 @@ def arc_concistent(grid, c, v):
     for p in peers[c]:
         if v in grid[p]:
             if len(grid[p]) <= 1:
-                return False 
+                return False
             else:
                 grid[p] = grid[p].replace(v, "")
                 changes[c] += v
@@ -137,8 +137,8 @@ def arc_concistent(grid, c, v):
                 #     grid[changed_cell] += values
                 return False
     return True
-    
-            
+
+
 
 # minimum nr of clues for a unique solution is 17
 slist = [None for x in range(20)]
