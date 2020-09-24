@@ -34,7 +34,7 @@ def tour_length(tour):
 def make_cities(n, width=1000, height=1000):
     # make a set of n cities, each with random coordinates within a rectangle (width x height).
 
-    random.seed(5) # the current system time is used as a seed
+    random.seed(7) # the current system time is used as a seed
     # note: if we use the same seed, we get the same set of cities
 
     return frozenset(City(random.randrange(width), random.randrange(height))
@@ -42,7 +42,7 @@ def make_cities(n, width=1000, height=1000):
 
 def plot_tour(tour):
     # plot the cities as circles and the tour as lines between them
-    points = list(tour) + [tour[0]]
+    points = list(tour)# + [tour[0]]
     plt.plot([p.x for p in points], [p.y for p in points], 'bo-')
     plt.axis('scaled') # equal increments of x and y have the same length
     plt.axis('off')
@@ -76,7 +76,7 @@ def get_intersecting_roads(tour):
     intersecting_roads = []
     tour_copy = tour #copy.deepcopy(tour)
     for i in range(len(tour_copy) - 1):
-        for j in range(1, len(tour_copy) - 1):
+        for j in range(len(tour_copy) - 1):
             roads = ((tour_copy[i], tour_copy[i + 1]), (tour_copy[j], tour_copy[j + 1]))
             if tour_copy[i + 1] != tour_copy[j] and tour_copy[i] != tour_copy[j + 1] and roads[0] != roads[1]:
                 if do_intersect(roads):
@@ -122,6 +122,9 @@ def two_opt_swap(tour, i, j):
     # new_tour = tour[:i]
     # new_tour.extend(reversed(tour[i:j]))
     # new_tour.extend(tour[j:])
+    if j <= i:
+        print("Cannot swap with reversed nodes, indexes {}, {}".format(i, j))
+        return tour
     new_tour = tour[:i]
     new_tour.extend(reversed(tour[i:j + 1]))
     new_tour.extend(tour[j + 1:])
@@ -135,20 +138,50 @@ def two_opt(cities):
     # print(intersecting_roads, len(intersecting_roads))
     print("intersections: {}".format(len(intersecting_roads)))
     for roads in intersecting_roads:
-        # min_index = min(tour.index(roads[0][0]), tour.index(roads[1][1]))
-        # max_index = max(tour.index(roads[0][0]), tour.index(roads[1][1]))
-        min_index = tour.index(roads[0][1])
-        max_index = tour.index(roads[1][0])
+        min_index = min(tour.index(roads[0][1]), tour.index(roads[1][0]))
+        max_index = max(tour.index(roads[0][1]), tour.index(roads[1][0]))
+        print("Solving crossing, len = {}".format(len(tour)))
+        # min_index = tour.index(roads[0][1])
+        # max_index = tour.index(roads[1][0])
+        print("min {}, max {}".format(min_index, max_index))
         tour = two_opt_swap(tour, min_index, max_index)
+        print("Post-solve, len = {}".format(len(tour)))
         # print(tour)
         # print(len(tour))
+    print(len(tour))
+    return tour
+
+def two_opt_e(cities):
+    tour = nearest_neighbor(cities)
+    # iterate over all sets of edges between cities
+    iters = 0
+    while(True):
+        can_better = False
+        for i in range(len(tour) - 1):
+            for j in range(len(tour) - i - 2):
+                # get the nodes
+                roads = ((tour[i], tour[i + 1]), (tour[i + j + 1], tour[i + j + 2]))
+                min_index = tour.index(roads[0][1])
+                max_index = tour.index(roads[1][0])
+                # swap them, and check if it is faster
+                old_length = distance(roads[0][0], roads[0][1]) + distance(roads[1][0], roads[1][1])
+                new_length = distance(roads[0][0], roads[1][0]) + distance(roads[0][1], roads[1][1])
+                if(new_length < old_length):
+                    tour = two_opt_swap(tour, min_index, max_index)
+                    can_better = True
+        if not can_better:
+            break
+        iters += 1
+        if iters >= 5:
+            break
     return tour
 
 # print(City(x=335, y=77) == City(x=335, y=77))
 # print(do_intersect(((City(x=400, y=150), City(x=400, y=100)), (City(x=300, y=200), City(x=450, y=200)))))
-# plot_tsp(try_all_tours, make_cities(100))
-plot_tsp(nearest_neighbor, make_cities(25))
-plot_tsp(two_opt, make_cities(25))
+
+# plot_tsp(try_all_tours, make_cities(25))
+plot_tsp(nearest_neighbor, make_cities(500))
+plot_tsp(two_opt_e, make_cities(500))
 
 # A.
 # using seed n = 10
