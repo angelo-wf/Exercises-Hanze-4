@@ -1,4 +1,6 @@
 import time
+import copy
+from collections import defaultdict
 
 # helper function
 def cross(A, B):
@@ -78,10 +80,65 @@ def no_conflict(grid, c, v):
            return False # conflict
     return True
 
-def solve(grid):
+def copy_grid(grid):
+    return copy.deepcopy(grid)
+
+def all_cells_have_one_value(grid):
+    for v in grid.values():
+        if len(v) != 1:
+            return False
+    return True
+
+def find_unfilled_cell(grid):
+    for k, v in grid.items():
+        if len(v) > 1:
+            return k
+
+def solve(grid, count):
     # backtracking search a solution (DFS)
-    # your code here
-    pass
+    print(count)
+    if all_cells_have_one_value(grid):
+        display(grid)
+        return True
+    c = find_unfilled_cell(grid)
+    for v in grid[c]:
+        if no_conflict(grid, c, v):
+            new_grid = copy_grid(grid)
+            new_grid[c] = v
+            # if arc_concistent(grid, c, v):
+            if solve(new_grid, count + 1):
+                return True
+    return False
+
+def other_cells_with_one_value(grid, c):
+    other_cells = []
+    for k, v in grid.items():
+        if len(v) == 1 and c != k:
+            other_cells.append((k, v))
+    return other_cells
+
+def arc_concistent(grid, c, v):
+    grid_changed = False
+    changes = defaultdict(str)
+    display(grid)
+    for p in peers[c]:
+        if v in grid[p]:
+            if len(grid[p]) <= 1:
+                return False 
+            else:
+                grid[p] = grid[p].replace(v, "")
+                changes[c] += v
+                grid_changed = True
+    if grid_changed:
+        for c2, v2 in other_cells_with_one_value(grid, c):
+            new_grid = copy_grid(grid)
+            if not arc_concistent(new_grid, c2, v2):
+                # for changed_cell, values in changes.items():
+                #     grid[changed_cell] += values
+                return False
+    return True
+    
+            
 
 # minimum nr of clues for a unique solution is 17
 slist = [None for x in range(20)]
@@ -108,10 +165,11 @@ slist[19]= '1.....3.8.7.4..............2.3.1...........958.........5.6...7.....8
 
 for i,sudo in enumerate(slist):
     print('*** sudoku {0} ***'.format(i))
-    print(sudo)
+    # print(sudo)
     d = parse_string_to_dict(sudo)
+    display(d)
     start_time = time.time()
-    solve(d)
+    solve(d, 0)
     end_time = time.time()
     hours, rem = divmod(end_time-start_time, 3600)
     minutes, seconds = divmod(rem, 60)
