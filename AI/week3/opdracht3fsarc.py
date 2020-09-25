@@ -1,10 +1,9 @@
 
 import time
 import math
-import copy
 
-grid = {} # (x, y) -> {possible values (for doing Arc Consistency)}
-peers = {} # for each cell, list of cells that are in same row, col or cell
+grid = {} # (x, y) -> {set of possible values (for doing Arc Consistency)}
+peers = {} # (x, y) -> {set of cells (x, y) that are in same row, col or box, excluding self}
 
 def print_grid(grid):
     for y in range(9):
@@ -24,7 +23,7 @@ def print_grid(grid):
 def create_grid_and_peers():
     for x in range(9):
         for y in range(9):
-            grid[(x, y)] = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+            grid[(x, y)] = None
             peer_set = set()
             for lv in range(9):
                 peer_set.add((x, lv))
@@ -39,7 +38,6 @@ def create_grid_and_peers():
             peers[(x, y)] = peer_set
 
 def clear_grid(grid):
-    length = 9
     for x in range(9):
         for y in range(9):
             grid[(x, y)] = {1, 2, 3, 4, 5, 6, 7, 8, 9}
@@ -89,7 +87,10 @@ def get_next_loc(grid):
     return loc
 
 def copy_grid(grid):
-    return copy.deepcopy(grid)
+    copy = {}
+    for key, val in grid.items():
+        copy[key] = set(val)
+    return copy
 
 def solve(grid):
     if is_full(grid):
@@ -100,7 +101,7 @@ def solve(grid):
     for v in grid[loc]:
         # put in each value and continue to next spot
         if is_valid(grid, loc, v):
-            new_grid = copy.deepcopy(grid)
+            new_grid = copy_grid(grid)
             new_grid[loc] = {v}
             if make_arc_consistent(new_grid, loc, v):
                 if solve(new_grid):
@@ -119,14 +120,12 @@ def make_arc_consistent(grid, loc, v):
                 grid[peer].remove(v)
                 changed = True
     if changed:
-        # we changed, check for other values with only one option
+        # we changed, check for peers that have updated to only one option
         for peer in peers[loc]:
-            if peer != loc and len(grid[peer]) == 1:
+            if len(grid[peer]) == 1:
                 if not make_arc_consistent(grid, peer, next(iter(grid[peer]))):
                     return False
     return True
-
-
 
 slist = [None for x in range(20)]
 slist[0] = '.56.1.3....16....589...7..4.8.1.45..2.......1..42.5.9.1..4...899....16....3.6.41.'
