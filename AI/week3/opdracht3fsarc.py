@@ -2,8 +2,8 @@
 import time
 import math
 
-grid = {} # (x, y) -> {set of possible values (for doing Arc Consistency)}
-peers = {} # (x, y) -> {set of cells (x, y) that are in same row, col or box, excluding self}
+grid = {} # (x, y) -> {Set of possible values (for doing Arc Consistency)}
+peers = {} # (x, y) -> {Set of cells (x, y) that are in same row, col or box, excluding self}
 
 def print_grid(grid):
     for y in range(9):
