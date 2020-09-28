@@ -100,12 +100,11 @@ def solve(grid):
     loc = get_next_loc(grid)
     for v in grid[loc]:
         # put in each value and continue to next spot
-        if is_valid(grid, loc, v):
-            new_grid = copy_grid(grid)
-            new_grid[loc] = {v}
-            if make_arc_consistent(new_grid, loc, v):
-                if solve(new_grid):
-                    return True
+        new_grid = copy_grid(grid)
+        new_grid[loc] = {v}
+        if make_arc_consistent(new_grid, loc, v):
+            if solve(new_grid):
+                return True
     return False
 
 def make_arc_consistent(grid, loc, v):
