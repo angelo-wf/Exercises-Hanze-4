@@ -14,10 +14,10 @@ import time
 # . 3   . .
 # 1......2..4..3..
 
-SIZE = 2 # size of square in grid
+SIZE = 3 # size of square in grid
 
-grid = {}
-peers = {} # for each cell, list of cells that are in same row, col or cell
+grid = {} # for each cell, the value in that cell, or 0 if empty
+peers = {} # for each cell, list of cells that are in same row, col or box
 
 def print_grid(grid):
     for y in range(SIZE*SIZE):

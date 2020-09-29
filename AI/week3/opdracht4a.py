@@ -75,23 +75,19 @@ def get_lowest_col(row_valid, col_valid):
     lowest_count = NR_OF_ROWS # all rows have a 1 (can't be)
     for col in [i for i in range(NR_OF_COLS) if col_valid[i]]:
         # col is not covered
-        count = 0
-        for row in [i for i in range(NR_OF_ROWS) if row_valid[i]]:
-            count += a[row, col]
+        count = len([i for i in col_has_1_at[col] if row_valid[i]])
         if count < lowest_count:
             lowest_count = count
             lowest_col = col
     return (lowest_col, lowest_count)
 
 def cover(r, row_valid, col_valid):
-    for col in [i for i in range(NR_OF_COLS) if col_valid[i]]:
-        if a[r, col] == 1:
-            # cover each of the rows with a one in this column
-            for row in [i for i in range(NR_OF_ROWS) if row_valid[i]]:
-                if a[row, col] == 1:
-                    row_valid[row] = 0
-            # and cover the column itself
-            col_valid[col] = 0
+    for col in [i for i in row_has_1_at[r] if col_valid[i]]:
+        # cover each of the rows with a one in this column
+        for row in [i for i in col_has_1_at[col] if row_valid[i]]:
+            row_valid[row] = 0
+        # and cover the column itself
+        col_valid[col] = 0
 
 def solve(row_valid, col_valid, solution):
     if 1 not in col_valid:
@@ -102,17 +98,16 @@ def solve(row_valid, col_valid, solution):
     if count == 0:
         # not a solution
         return
-    for row in [i for i in range(NR_OF_ROWS) if row_valid[i]]:
-        if a[row, col] == 1:
-            # add to partial solution
-            n_solution = solution.copy()
-            n_solution.append(row)
-            # cover
-            n_col_valid = col_valid.copy()
-            n_row_valid = row_valid.copy()
-            cover(row, n_row_valid, n_col_valid)
-            # and repeat recusively
-            solve(n_row_valid, n_col_valid, n_solution)
+    for row in [i for i in col_has_1_at[col] if row_valid[i]]:
+        # add to partial solution
+        n_solution = solution.copy()
+        n_solution.append(row)
+        # cover
+        n_col_valid = col_valid.copy()
+        n_row_valid = row_valid.copy()
+        cover(row, n_row_valid, n_col_valid)
+        # and repeat recusively
+        solve(n_row_valid, n_col_valid, n_solution)
 
 solve(row_valid, col_valid, [])
 
