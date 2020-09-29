@@ -71,7 +71,6 @@ def make_matrix():
             box_x = x // SIZE
             box_y = y // SIZE
             box = box_y * SIZE + box_x
-            # handle cols
             for i in range(length):
                 matrix[loc * length + i][3*length*length + box * length + i] = 1
     return matrix

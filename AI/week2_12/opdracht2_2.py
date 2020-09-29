@@ -1,176 +1,227 @@
-"""
 
-Othello is a turn-based two-player strategy board game.
+import math
 
------------------------------------------------------------------------------
-Board representation
 
-We represent the board as a 100-element list, which includes each square on
-the board as well as the outside edge. Each consecutive sublist of ten
-elements represents a single row, and each list element stores a piece. 
-An initial board contains four pieces in the center:
+class Reversi:
+    def __init__(self):
+        self.board = [0 for x in range(64)]
+        self.turn = 1 # 1: player 1; 2: player 2; 0: game ended
+        self.board[3 * 8 + 3] = 2
+        self.board[3 * 8 + 4] = 1
+        self.board[4 * 8 + 3] = 1
+        self.board[4 * 8 + 4] = 2
 
-    ? ? ? ? ? ? ? ? ? ?
-    ? . . . . . . . . ?
-    ? . . . . . . . . ?
-    ? . . . . . . . . ?
-    ? . . . o @ . . . ?
-    ? . . . @ o . . . ?
-    ? . . . . . . . . ?
-    ? . . . . . . . . ?
-    ? . . . . . . . . ?
-    ? ? ? ? ? ? ? ? ? ?
+    def start(self):
+        self.print_board()
+        print("Player {} to move".format(self.turn))
 
-This representation has two useful properties:
+    def do_move(self, x, y):
+        if self.turn == 0:
+            print("I said, the game has ended!")
+            return
+        if not self.in_range(x) or not self.in_range(y):
+            print("Invalid coordinates: ({}, {}), player {}".format(x, y, self.turn))
+            return
+        moves = self.handle_turn(x, y, self.turn, self.board)
+        if moves is None:
+            print("Can't do move: ({}, {}), player {}".format(x, y, self.turn))
+            return
+        # apply changes to board
+        for move in moves:
+            self.board[move[1] * 8 + move[0]] = self.turn
+        # swap turns
+        self.turn = 1 if self.turn == 2 else 2
+        # check if 'next' player can do any moves
+        if not self.can_move(self.turn):
+            # he couldn't, so swap back to 'current' player and check again
+            self.turn = 1 if self.turn == 2 else 2
+            if not self.can_move(self.turn):
+                # 'current' player can't move either, game has ended
+                self.turn = 0
+        self.print_board()
+        if self.turn != 0:
+            print("Player {} to move".format(self.turn))
+        else:
+            print("Game has ended!")
+            counts = self.count_stones()
+            if counts[0] > counts[1]:
+                print("Player 1 won!")
+            elif counts[0] < counts[1]:
+                print("Player 2 won!")
+            else:
+                print("It's a draw!")
 
-1. Square (m,n) can be accessed as `board[mn]`. This is because size of square is 10x10,
-   and mn means m*10 + n. This avoids conversion between square locations and list indexes.
-2. Operations involving bounds checking are slightly simpler.
-"""
+    def print_board(self):
+        print("  0 1 2 3 4 5 6 7 x")
+        for y in range(8):
+            print("{} ".format(y), end="")
+            for x in range(8):
+                piece = self.board[y * 8 + x]
+                if piece == 0:
+                    print(". ", end="")
+                elif piece == 1:
+                    print("O ", end="")
+                elif piece == 2:
+                    print("# ", end="")
+            print("")
+        print("y")
 
-# The outside edge is marked ?, empty squares are ., black is @, and white is o.
-# The black and white pieces represent the two players.
-EMPTY, BLACK, WHITE, OUTER = '.', '@', 'o', '?'
-PIECES = (EMPTY, BLACK, WHITE, OUTER)
-PLAYERS = {BLACK: 'Black', WHITE: 'White'}
+    def count_stones(self):
+        p1_stones = 0
+        p2_stones = 0
+        for x in range(8):
+            for y in range(8):
+                if self.board[y * 8 + x] == 1:
+                    p1_stones += 1
+                elif self.board[y * 8 + x] == 2:
+                    p2_stones += 1
+        return (p1_stones, p2_stones)
 
-# To refer to neighbor squares we can add a direction to a square.
-UP, DOWN, LEFT, RIGHT = -10, 10, -1, 1
-UP_RIGHT, DOWN_RIGHT, DOWN_LEFT, UP_LEFT = -9, 11, 9, -11
+    def can_move(self, turn):
+        for x in range(8):
+            for y in range(8):
+                if self.handle_turn(x, y, turn, self.board) is not None:
+                    return True
+        return False
 
-# 8 directions; note UP_LEFT = -11, we can repeat this from row to row
-DIRECTIONS = (UP, UP_RIGHT, RIGHT, DOWN_RIGHT, DOWN, DOWN_LEFT, LEFT, UP_LEFT)
-
-def squares():
-    # list all the valid squares on the board.
-    # returns a list [11, 12, 13, 14, 15, 16, 17, 18, 21, ...]; e.g. 19,20,21 are invalid
-    # 11 means first row, first col, because the board size is 10x10
-    return [i for i in range(11, 89) if 1 <= (i % 10) <= 8]
-
-def initial_board():
-    # create a new board with the initial black and white positions filled
-    # returns a list ['?', '?', '?', ..., '?', '?', '?', '.', '.', '.', ...]
-    board = [OUTER] * 100
-    for i in squares():
-        board[i] = EMPTY
-    # the middle four squares should hold the initial piece positions.
-    board[44], board[45] = WHITE, BLACK
-    board[54], board[55] = BLACK, WHITE
-    return board
-
-def print_board(board):
-    # get a string representation of the board
-    # heading '  1 2 3 4 5 6 7 8\n'
-    rep = ''
-    rep += '  %s\n' % ' '.join(map(str, range(1, 9)))
-    # begin,end = 11,19 21,29 31,39 ..
-    for row in range(1, 9):
-        begin, end = 10*row + 1, 10*row + 9
-        rep += '%d %s\n' % (row, ' '.join(board[begin:end]))
-    return rep
-
-# -----------------------------------------------------------------------------
-# Playing the game
-
-# We need functions to get moves from players, check to make sure that the moves
-# are legal, apply the moves to the board, and detect when the game is over.
-
-# Checking moves. # A move must be both valid and legal: it must refer to a real square,
-# and it must form a bracket with another piece of the same color with pieces of the
-# opposite color in between.
-
-def is_valid(move):
-    # is move a square on the board?
-    # move must be an int, and must refer to a real square
-    return isinstance(move, int) and move in squares()
-
-def opponent(player):
-    # get player's opponent piece
-    return BLACK if player is WHITE else WHITE
-
-def find_bracket(square, player, board, direction):
-    # find and return the square that forms a bracket with `square` for `player` in the given
-    # `direction`
-    # returns None if no such square exists
-    bracket = square + direction
-    if board[bracket] == player:
+    def handle_turn(self, mx, my, turn, board):
+        # if there is already a piece there, invalid move
+        if board[my * 8 + mx] != 0:
+            return None
+        allowed = False
+        changes = [] # list of changed pieces
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                # for each of the 8 cells
+                # if it is out of range, check next cell
+                if not self.in_range(mx + i) or not self.in_range(my + j):
+                    continue
+                # get the coords for the piece next to the placed piece
+                cx = mx + i
+                cy = my + j
+                # if it is our piece or empty, check next cell
+                if board[cy * 8 + cx] == turn or board[cy * 8 + cx] == 0:
+                    continue
+                can_do = False
+                t = 2 # amount of pieces away from placed piece
+                # starting at 2 because we know the first piece in the direction must be from the other player
+                while self.in_range(mx + (i * t)) and self.in_range(my + (j * t)):
+                    tcx = mx + (i * t)
+                    tcy = my + (j * t)
+                    # if the cell is empty, not valid
+                    if board[tcy * 8 + tcx] == 0:
+                        break
+                    # if the cell is our piece, it is valid, indicate and break
+                    if board[tcy * 8 + tcx] == turn:
+                        can_do = True
+                        break
+                    t += 1
+                if can_do:
+                    # we can do a move, append to changes the pieces that will flip
+                    u = 1 # amount of pieces away from placed piece
+                    while self.in_range(mx + (i * u)) and self.in_range(my + (j * u)):
+                        tcx = mx + (i * u)
+                        tcy = my + (j * u)
+                        # break if we hit our piece
+                        if board[tcy * 8 + tcx] == turn:
+                            break
+                        changes.append((tcx, tcy))
+                        u += 1
+                    allowed = True
+        if allowed:
+            # add the just placed piece to changes
+            changes.append((mx, my))
+            return changes
         return None
-    opp = opponent(player)
-    while board[bracket] == opp:
-        bracket += direction
-    # if last square board[bracket] not in (EMPTY, OUTER, opp) then it is player
-    return None if board[bracket] in (OUTER, EMPTY) else bracket
 
-def is_legal(move, player, board):
-    # is this a legal move for the player?
-    # move must be an empty square and there has to be is an occupied line in some direction
-    # any(iterable) : Return True if any element of the iterable is true
-    hasbracket = lambda direction: find_bracket(move, player, board, direction)
-    return board[move] == EMPTY and any(hasbracket(x) for x in DIRECTIONS)
+    def in_range(self, val):
+        return val >= 0 and val < 8
 
-# Making moves
-# When the player makes a move, we need to update the board and flip all the
-# bracketed pieces.
+reversi = Reversi()
 
-def make_move(move, player, board):
-    # update the board to reflect the move by the specified player
-    # assuming now that the move is valid
-    board[move] = player
-    # look for a bracket in any direction
-    for d in DIRECTIONS:
-        make_flips(move, player, board, d)
-    return board
+# ----- AI (minimax) -----
 
-def make_flips(move, player, board, direction):
-    # flip pieces in the given direction as a result of the move by player
-    bracket = find_bracket(move, player, board, direction)
-    if not bracket:
-        return
-    # found a bracket in this direction
-    square = move + direction
-    while square != bracket:
-        board[square] = player
-        square += direction
+MAX_DEPTH = 3
+# with a depth of 3 it takes around 3 seconds to find the best move (without a/b pruning)
+WEIGHTS = [
+    100, 3, 20, 12, 12, 20, 3, 100,
+    3, 1, 6, 6, 6, 6, 1, 3,
+    20, 6, 12, 10, 10, 12, 6, 20,
+    12, 6, 10, 8, 8, 10, 6, 12,
+    12, 6, 10, 8, 8, 10, 6, 12,
+    20, 6, 12, 10, 10, 12, 6, 20,
+    3, 1, 6, 6, 6, 6, 1, 3,
+    100, 3, 20, 12, 12, 20, 3, 100,
+]
 
-# Monitoring players
+# returns ((x, y), score)
+def negamax_ab(board, turn, depth, alpha, beta):
+    if depth > MAX_DEPTH:
+        # calculate board score
+        score = get_score(board, turn)
+        return ((0, 0), score)
+    highest_score = -math.inf
+    highest_move = None
+    # check for all possible moves what scores they get
+    for move in get_possible_moves(board, turn):
+        # apply the move, then minimax it for the other player
+        new_board = board.copy()
+        for change in move:
+            new_board[change[1] * 8 + change[0]] = turn
+        result = None
+        if len(get_possible_moves(new_board, 1 if turn == 2 else 2)) > 0:
+            score = -negamax_ab(new_board, 1 if turn == 2 else 2, depth + 1, -beta, -alpha)[1]
+            result = (move[-1], score) # assumes last in array is the stone that was placed
+        else:
+            # if other player can not move, minimax ourselves instead
+            score = negamax_ab(new_board, turn, depth + 1, alpha, beta)[1]
+            result = (move[-1], score) # assume last in array is the stone that was placed
+        if result[1] > highest_score:
+            highest_score = result[1]
+            highest_move = result
+        alpha = max(alpha, highest_score)
+        if alpha >= beta:
+            break
+    if highest_move is None:
+        # there were no moves, get score from board
+        score = get_score(board, turn)
+        return ((0, 0), score)
+    return highest_move
 
-# define an exception
-class IllegalMoveError(Exception):
-    def __init__(self, player, move, board):
-        self.player = player
-        self.move = move
-        self.board = board
-    
-    def __str__(self):
-        return '%s cannot move to square %d' % (PLAYERS[self.player], self.move)
+def get_score(board, us):
+    total = 0
+    for x in range(8):
+        for y in range(8):
+            if board[y * 8 + x] == us:
+                total += WEIGHTS[y * 8 + x]
+            elif board[y * 8 + x] != 0:
+                total -= WEIGHTS[y * 8 + x]
+    return total
 
-def legal_moves(player, board):
-    # get a list of all legal moves for player
-    # legals means : move must be an empty square and there has to be is an occupied line in some direction
-    return [sq for sq in squares() if is_legal(sq, player, board)]
+def get_best_move(board, player):
+    return negamax_ab(board, player, 0, -math.inf, math.inf)[0]
 
-def any_legal_move(player, board):
-    # can player make any moves?
-    return any(is_legal(sq, player, board) for sq in squares())
+def get_possible_moves(board, turn):
+    possible = []
+    for x in range(8):
+        for y in range(8):
+            changes = reversi.handle_turn(x, y, turn, board)
+            if changes is not None:
+                possible.append(changes)
+    return possible
 
-# Putting it all together
+# ----- running -----
 
-# Each round consists of:
-# - Get a move from the current player.
-# - Apply it to the board.
-# - Switch players. If the game is over, get the final score.
-
-def play(black_strategy, white_strategy):
-    # play a game of Othello and return the final board and score
-
-def next_player(board, prev_player):
-    # which player should move next?  Returns None if no legal moves exist
-
-def get_move(strategy, player, board):
-    # call strategy(player, board) to get a move
-
-def score(player, board):
-    # compute player's score (number of player's pieces minus opponent's)
-
-# Play strategies
-
+reversi.start()
+while True:
+    while reversi.turn == 1:
+        print("Move (\"x,y\"): ", end="")
+        move = input().split(",")
+        (x, y) = tuple(move)
+        reversi.do_move(int(x), int(y))
+    while reversi.turn == 2:
+        move = get_best_move(reversi.board.copy(), 2)
+        print("AI did move: ({}, {})".format(move[0], move[1]))
+        reversi.do_move(move[0], move[1])
+    if reversi.turn == 0:
+        break
