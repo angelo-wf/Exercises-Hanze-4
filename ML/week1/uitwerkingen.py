@@ -20,6 +20,7 @@ def drawGraph(data):
     # Maak gebruik van pytplot.scatter om dit voor elkaar te krijgen.
 
     #YOUR CODE HERE
+    
     x, y = zip(*data)
 
     plt.scatter(x, y)
@@ -46,9 +47,12 @@ def computeCost(X, y, theta):
     #    4. kwadrateer dit verschil
     #    5. tal al deze kwadraten bij elkaar op en deel dit door twee keer het aantal datapunten
 
-    J = 0
-
     # YOUR CODE HERE
+
+    m, n = X.shape
+    predictions = np.dot(X, theta)
+    errors = (predictions - y) ** 2
+    J = (sum(errors) / (2 * m))[0]
 
     return J
 
@@ -84,7 +88,7 @@ def gradientDescent(X, y, theta, alpha, num_iters):
 def contourPlot(X, y):
     #OPGAVE 4
     # Deze methode tekent een contour plot voor verschillende waarden van theta_0 en theta_1.
-    # De infrastructuur en algemene opzet is al gegeven; het enige wat je hoeft te doen is 
+    # De infrastructuur en algemene opzet is al gegeven; het enige wat je hoeft te doen is
     # de matrix J_vals vullen met waarden die je berekent aan de hand van de methode computeCost,
     # die je hierboven hebt gemaakt.
     # Je moet hiervoor door de waarden van t1 en t2 itereren, en deze waarden in een ndarray
@@ -101,7 +105,7 @@ def contourPlot(X, y):
 
     J_vals = np.zeros( (len(t2), len(t2)) )
 
-    #YOUR CODE HERE 
+    #YOUR CODE HERE
 
     surf = ax.plot_surface(T1, T2, J_vals, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
 
