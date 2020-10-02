@@ -20,7 +20,7 @@ def drawGraph(data):
     # Maak gebruik van pytplot.scatter om dit voor elkaar te krijgen.
 
     #YOUR CODE HERE
-    
+
     x, y = zip(*data)
 
     plt.scatter(x, y)
@@ -80,6 +80,14 @@ def gradientDescent(X, y, theta, alpha, num_iters):
 
     # YOUR CODE HERE
 
+    for iteration in range(num_iters):
+
+        predictions = np.dot(X, theta.T)
+        errors = (predictions - y)
+        for theta_i in range(n):
+            errors *= X[:,[theta_i]]
+            theta[0, theta_i] -= alpha * (sum(errors) / m)
+
     # aan het eind van deze loop retourneren we de nieuwe waarde van theta
     # (wat is de dimensionaliteit van theta op dit moment?).
 
@@ -105,7 +113,13 @@ def contourPlot(X, y):
 
     J_vals = np.zeros( (len(t2), len(t2)) )
 
-    #YOUR CODE HERE
+    for th1_i in range(len(t1)):
+        for th2_i in range(len(t2)):
+            th1 = t1[th1_i]
+            th2 = t2[th2_i]
+            theta = np.array([[th1, th2]])
+            ans = computeCost(X, y, theta.T)
+            J_vals[th1_i, th2_i] = ans
 
     surf = ax.plot_surface(T1, T2, J_vals, rstride=1, cstride=1, cmap=cm.coolwarm, linewidth=0, antialiased=False)
 
