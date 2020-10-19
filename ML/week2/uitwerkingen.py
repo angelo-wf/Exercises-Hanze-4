@@ -35,13 +35,13 @@ def get_y_matrix(y, m):
     # van de matrix 10 (0-9), maar de methode moet werken voor elke waarde van 
     # y en m
 
-    rows = np.array([i for i in range(m)])
-    data = np.array([1 for _ in range(m)])
-    width = max(y)
-    matrix = csr_matrix((data, (rows, y)), shape=(m, width))
+    cols = [i[0] - 1 for i in y]
+    rows = [i for i in range(m)]
+    data = [1 for _ in range(m)]
+    width = max(y)[0]
+    y_vec = csr_matrix((data, (rows, cols)), shape=(m, width))
 
-    return matrix 
-    # y_matrix = csr_matrix()
+    return y_vec 
 
 
 # ==== OPGAVE 2c ==== 
