@@ -1,6 +1,3 @@
 .DS_Store
 *.pyc
 __pycache__
-
-# for being able to change path to data files
-/ML/week1/exercise1.py

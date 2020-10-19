@@ -4,6 +4,8 @@ import pickle
 
 from uitwerkingen import *
 
+from getpath import get_path
+
 '''
 Onderstaande regels laden het pickle-bestand in waarin de data is opgeslagen.
 Dit betreft een vector van 97 regels en 2 kolommen: de eerste kolom bevat
@@ -19,7 +21,7 @@ rest van het programma gebruikt kunnen worden:
 Het is de bedoeling om de optimale waarden voor theta te vinden.
 '''
 
-with open('week1_data.pkl','rb') as f:
+with open(get_path('week1_data.pkl'),'rb') as f:
   data=pickle.load(f)
 
 m,n = data.shape

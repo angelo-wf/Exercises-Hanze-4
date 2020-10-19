@@ -7,10 +7,12 @@ import matplotlib.pyplot as plt
 import sys
 import pickle
 
+from getpath import get_path
+
 from uitwerkingen import *
 
 # Helperfuncties die nodig zijn om de boel te laten werken
-# Hier hoef je niets aan te veranderen, maar bestudeer de 
+# Hier hoef je niets aan te veranderen, maar bestudeer de
 # code om een beeld te krijgen van de werking hiervan.
 
 def randInitializeWeights(in_conn, out_conn):
@@ -44,11 +46,11 @@ def nnCostFunction(Thetas, X, y):
     Theta2 = Thetas[size:].reshape(num_labels, hidden_layer_size+1)
     J = computeCost(Theta1, Theta2, X, y)
     grad1, grad2 = nnCheckGradients(Theta1, Theta2, X, y)
-    return J, np.concatenate( (grad1.flatten(), grad2.flatten()) ) 
+    return J, np.concatenate( (grad1.flatten(), grad2.flatten()) )
 
 
 #Laden van de data en zetten van de variabelen.
-with open ('./Exercises-Hanze-4/ML/week2/week2_data.pkl','rb') as f:
+with open (get_path('./Exercises-Hanze-4/ML/week2/week2_data.pkl'),'rb') as f:
     data = pickle.load(f)
 
 X,y = data['X'], data['y']
@@ -61,7 +63,7 @@ num_labels = 10;          # 10 labels, from 1 to 10
                           # (note that we have mapped "0" to label 10)
 
 
-# ========================  OPGAVE 1 ======================== 
+# ========================  OPGAVE 1 ========================
 rnd = randint(0, X.shape[0])
 print ("Tekenen van data op regel {}".format(rnd))
 if (len(sys.argv)>1 and sys.argv[1]=='skip') :
@@ -72,10 +74,10 @@ else:
     print ("Dit zou een {} moeten zijn.".format(hyp))
     plotNumber(X[rnd,:])
 
-input ("Druk op Return om verder te gaan...") 
+input ("Druk op Return om verder te gaan...")
 
 
-# ========================  OPGAVE 2a ======================== 
+# ========================  OPGAVE 2a ========================
 print ("")
 print ("Sigmoid-functie met een relatief groot negatief getal zou bijna 0 moeten zijn")
 print ("Sigmoid van -10 = {}".format(sigmoid(-10)))
@@ -91,9 +93,9 @@ print (sigmoid(np.matrix( [-10, 0, 10] )))
 print ("Simoid aangeroepen met 3×1 vector [-10, 0, 10]")
 print (sigmoid(np.matrix( ([-10], [0], [10]) )))
 
-input ("Druk op Return om verder te gaan...") 
+input ("Druk op Return om verder te gaan...")
 
-# ========================  OPGAVE 2b ======================== 
+# ========================  OPGAVE 2b ========================
 print ("")
 print ("Aanroepen van de methode predictNumber met de y-vector")
 print ("en het weergeven van de dimensionaliteit van het resultaat")
@@ -103,7 +105,7 @@ print ("Dit zou (5000,10) moeten zijn.")
 input ("Druk op Return om verder te gaan.")
 
 
-# ========================  OPGAVE 2c ======================== 
+# ========================  OPGAVE 2c ========================
 print("")
 print ("Zetten van initiële waarden van de Theta's.")
 Theta1 = randInitializeWeights(input_layer_size, hidden_layer_size)
@@ -120,7 +122,7 @@ print ("Correct geclassificeerd: {}".format(acc))
 print ("De huidige accuratessse van het netwerk is {} %".format(100 * acc/ m))
 input ("Druk op Return om verder te gaan.")
 
-# ========================  OPGAVE 3 ======================== 
+# ========================  OPGAVE 3 ========================
 print ("")
 print ("Aanroepen van de methode sigmoidGradient met de waarden [-1, -0.5, 0, 0.5, 1 ]")
 print (sigmoidGradient(np.array([ [-1, -0.5, 0, 0.5, 1 ] ])))
@@ -135,7 +137,7 @@ print ("De totale som van de eerste gradiënt-matrix is {}".format(sum(sum(g1)))
 print ("De totale som van de tweede gradiënt-matrix is {}".format(sum(sum(g2))))
 input ("Druk op Return om verder te gaan...")
 
-# ========================  OPGAVE 4 ======================== 
+# ========================  OPGAVE 4 ========================
 
 init_params = np.concatenate( (Theta1.flatten(), Theta2.flatten()) )
 args = ( X, y)
@@ -150,7 +152,7 @@ print ("Training compleet. ")
 cost = computeCost(res_Theta1, res_Theta2, X, y)
 print ("De totale kost is nu {}".format(cost))
 
-cost = computeCost(res_Theta1, res_Theta2, X, y) 
+cost = computeCost(res_Theta1, res_Theta2, X, y)
 print ("De kosten die gemoeid zijn met de huidige waarden van Theta1 en Theta2 zijn {}".format(cost))
 print ("Dit zou een stuk lager moeten zijn dan in het begin.")
 
@@ -162,4 +164,4 @@ print ("De huidige accuratessse van het netwerk is {} %".format(100 * acc/ m))
 print ("Dat zou een stuk hoger moeten zijn dan in het begin.")
 print ("Plotten van de waarden van de gewichten in de verborgen laag (hidden layer)")
 
-displayData(res_Theta1[:,1:]) 
+displayData(res_Theta1[:,1:])
