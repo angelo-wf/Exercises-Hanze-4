@@ -50,7 +50,7 @@ def nnCostFunction(Thetas, X, y):
 
 
 #Laden van de data en zetten van de variabelen.
-with open (get_path('./Exercises-Hanze-4/ML/week2/week2_data.pkl'),'rb') as f:
+with open (get_path('week2_data.pkl'),'rb') as f:
     data = pickle.load(f)
 
 X,y = data['X'], data['y']
