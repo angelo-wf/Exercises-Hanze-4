@@ -80,13 +80,12 @@ def gradientDescent(X, y, theta, alpha, num_iters):
 
     # YOUR CODE HERE
 
-    for iteration in range(num_iters):
+    for _ in range(num_iters):
 
         predictions = np.dot(X, theta.T)
         errors = (predictions - y)
-        for theta_i in range(n):
-            errors *= X[:,[theta_i]]
-            theta[0, theta_i] -= alpha * (sum(errors) / m)
+        errors = np.dot(X.T, errors).T
+        theta -= alpha * (errors / m)
 
     # aan het eind van deze loop retourneren we de nieuwe waarde van theta
     # (wat is de dimensionaliteit van theta op dit moment?).
