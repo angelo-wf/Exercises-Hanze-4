@@ -5,15 +5,14 @@ from scipy.sparse import csr_matrix
 # ==== OPGAVE 1 ====
 def plotNumber(nrVector):
     # Let op: de manier waarop de data is opgesteld vereist dat je gebruik maakt
-    # van de Fortran index-volgorde – de eerste index verandert het snelst, de
-    # laatste index het langzaamst; als je dat niet doet, wordt het plaatje
-    # gespiegeld en geroteerd. Zie de documentatie op
+    # van de Fortran index-volgorde – de eerste index verandert het snelst, de 
+    # laatste index het langzaamst; als je dat niet doet, wordt het plaatje 
+    # gespiegeld en geroteerd. Zie de documentatie op 
     # https://docs.scipy.org/doc/numpy/reference/generated/numpy.reshape.html
 
-    reshaped = np.reshape(nrVector, (20, 20), 'F')
-    plt.matshow(reshaped)
+    matrix = np.reshape(nrVector, (20, 20), 'F')
+    plt.matshow(matrix)
     plt.show()
-
 
 # ==== OPGAVE 2a ====
 def sigmoid(z):
@@ -22,8 +21,8 @@ def sigmoid(z):
     # vector is.
     # Maak gebruik van de methode exp() in NumPy.
 
-    return 1 / (1 + np.exp(-z))
-
+    sigmoid = 1 / (1 + np.exp(-z))
+    return sigmoid
 
 # ==== OPGAVE 2b ====
 def get_y_matrix(y, m):
@@ -32,42 +31,26 @@ def get_y_matrix(y, m):
     # Let op: de gegeven vector y is 1-based en de gevraagde matrix is 0-based,
     # dus als y_i=1, dan moet regel i in de matrix [1,0,0, ... 0] zijn, als
     # y_i=10, dan is regel i in de matrix [0,0,...1] (in dit geval is de breedte
-    # van de matrix 10 (0-9), maar de methode moet werken voor elke waarde van
+    # van de matrix 10 (0-9), maar de methode moet werken voor elke waarde van 
     # y en m
 
-    # cols = y.flatten() % 10 # 10 -> 0, 1-9 stay the same
-    # rows = [i for i in range(m)]
-    # data = [1 for _ in range(m)]
-    # width = max(cols) + 1
-    # y_vec = csr_matrix((data, (rows, cols)), shape=(m, width))
-    # return y_vec
+    cols = [i[0] for i in y-1]
+    rows = [i for i in range(len(cols))]
+    data = [1 for _ in range(len(rows))]
+    y_matrix = csr_matrix((data, (rows, cols))).toarray()
+    return y_matrix
 
-    # cols = [i[0] for i in y-1]
-    # rows = [i for i in range(len(cols))]
-    # data = [1 for _ in range(len(rows))]
-    # matrix = csr_matrix((data, (rows, cols))).toarray()
-
-    assert len(y) == m
-
-    cols = int(max(y))
-    matrix = np.zeros((m, cols))
-    for i in range(m):
-        matrix[int(i), int(y[i, 0]) - 1] = 1
-
-    return matrix
-
-
-# ==== OPGAVE 2c ====
+# ==== OPGAVE 2c ==== 
 # ===== deel 1: =====
 def predictNumber(Theta1, Theta2, X):
     # Deze methode moet een matrix teruggeven met de output van het netwerk
-    # gegeven de waarden van Theta1 en Theta2. Elke regel in deze matrix
+    # gegeven de waarden van Theta1 en Theta2. Elke regel in deze matrix 
     # is de waarschijnlijkheid dat het sample op die positie (i) het getal
     # is dat met de kolom correspondeert.
 
     # De matrices Theta1 en Theta2 corresponderen met het gewicht tussen de
     # input-laag en de verborgen laag, en tussen de verborgen laag en de
-    # output-laag, respectievelijk.
+    # output-laag, respectievelijk. 
 
     # Een mogelijk stappenplan kan zijn:
 
@@ -81,6 +64,7 @@ def predictNumber(Theta1, Theta2, X):
 
     # Voeg enen toe aan het begin van elke stap en reshape de uiteindelijke
     # vector zodat deze dezelfde dimensionaliteit heeft als y in de exercise.
+
     m, n = X.shape
     a1 = np.c_[np.ones(m), X]
     z2 = np.dot(a1, Theta1.T)
@@ -88,39 +72,37 @@ def predictNumber(Theta1, Theta2, X):
     a2 = np.c_[np.ones(m), a2]
     z3 = np.dot(a2, Theta2.T)
     a3 = sigmoid(z3)
+
     return a3
-
-
 
 # ===== deel 2: =====
 def computeCost(Theta1, Theta2, X, y):
     # Deze methode maakt gebruik van de methode predictNumber() die je hierboven hebt
-    # geïmplementeerd. Hier wordt het voorspelde getal vergeleken met de werkelijk
+    # geïmplementeerd. Hier wordt het voorspelde getal vergeleken met de werkelijk 
     # waarde (die in de parameter y is meegegeven) en wordt de totale kost van deze
     # voorspelling (dus met de huidige waarden van Theta1 en Theta2) berekend en
     # geretourneerd.
-    # Let op: de y die hier binnenkomt is de m×1-vector met waarden van 1...10.
+    # Let op: de y die hier binnenkomt is de m×1-vector met waarden van 1...10. 
     # Maak gebruik van de methode get_y_matrix() die je in opgave 2a hebt gemaakt
-    # om deze om te zetten naar een matrix.
+    # om deze om te zetten naar een matrix. 
+
+    k = predictNumber(Theta1, Theta2, X) # Voorspelling
+    y = get_y_matrix(y, y.shape[0])      # Correcte waarden
+
     m, n = X.shape
-    prediction = predictNumber(Theta1, Theta2, X)
-    y_matrix = get_y_matrix(y, m)
+    cost = 1 / m * np.sum(np.multiply(np.log(k), -y) - np.multiply(np.log(1 - k), (1 - y)))
 
-    # total_matrix = np.multiply(-y_matrix, np.log(prediction)) - np.multiply((1 - y_matrix), np.log(1 - prediction))
-    # cost = sum(sum(total_matrix)) / m
-    total_matrix = np.multiply(np.log(prediction), -y_matrix) - np.multiply(np.log(1 - prediction), (1 - y_matrix))
-    cost = np.sum(total_matrix) / m
     return cost
-
-
+    # https://datascience.stackexchange.com/questions/22470/python-implementation-of-cost-function-in-logistic-regression-why-dot-multiplic\
 
 # ==== OPGAVE 3a ====
-def sigmoidGradient(z):
+def sigmoidGradient(z): 
     # Retourneer hier de waarde van de afgeleide van de sigmoïdefunctie.
     # Zie de opgave voor de exacte formule. Zorg ervoor dat deze werkt met
     # scalaire waarden en met vectoren.
-    sig = sigmoid(z)
-    return sig * (1 - sig)
+
+    g = sigmoid(z)
+    return g * (1 - g)
 
 # ==== OPGAVE 3b ====
 def nnCheckGradients(Theta1, Theta2, X, y):
@@ -129,7 +111,9 @@ def nnCheckGradients(Theta1, Theta2, X, y):
 
     Delta2 = np.zeros(Theta1.shape)
     Delta3 = np.zeros(Theta2.shape)
-    # m = 1 #voorbeeldwaarde; dit moet je natuurlijk aanpassen naar de echte waarde van m
+    y_mat = get_y_matrix(y, y.shape[0])
+
+    # Stap 1 - Forward propagation
     m, n = X.shape
     a1 = np.c_[np.ones(m), X]
     z2 = np.dot(a1, Theta1.T)
@@ -138,17 +122,16 @@ def nnCheckGradients(Theta1, Theta2, X, y):
     z3 = np.dot(a2, Theta2.T)
     a3 = sigmoid(z3)
 
-    y_mat = get_y_matrix(y, m)
-
     for i in range(m):
+        # Stap 2 - Bereken verschil tussen uitkomst (a3) en correcte waarden (y)
         d3 = (a3[[i],:] - y_mat[[i],:]).T
+
+        # Stap 3 - Bereken de bijdrage aan totale fout van elke node
         d2 = np.multiply(np.dot(Theta2[:,1:].T, d3), sigmoidGradient(z2[[i],:].T))
+
+        # Stap 4
         Delta3 = Delta3 + np.dot(d3, a2[[i],:])
         Delta2 = Delta2 + np.dot(d2, a1[[i],:])
-    # d3 = (a3 - y_mat).T
-    # d2 = np.multiply(np.dot(Theta2[:,1:].T, d3), sigmoidGradient(z2).T)
-    # Delta3 = Delta3 + np.dot(d3, a2)
-    # Delta2 = Delta2 + np.dot(d2, a1)
 
     Delta2_grad = Delta2 / m
     Delta3_grad = Delta3 / m

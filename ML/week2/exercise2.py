@@ -9,6 +9,7 @@ import pickle
 
 from getpath import get_path
 
+# from uitwerkingen_tl import *
 from uitwerkingen import *
 
 # Helperfuncties die nodig zijn om de boel te laten werken
