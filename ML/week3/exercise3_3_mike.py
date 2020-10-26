@@ -27,15 +27,19 @@ def getData():
     label_index = 0
     for dir in dirs:
         file_paths = [join(path, dir, f) for f in listdir(join(path, dir)) if isfile(join(path, dir, f))]
-        amout_of_train_images = floor(len(file_paths) * 0.8181)
+        amout_of_train_images = floor(len(file_paths) * 1)
         for i in range(len(file_paths)):
             img = mpimg.imread(file_paths[i])
-            if i < amout_of_train_images:
-                train_images.append(img)
-                train_labels.append(label_index)
-            else: 
-                test_images.append(img)
-                test_labels.append(label_index)
+            # if i < amout_of_train_images:
+            #     train_images.append(img)
+            #     train_labels.append(label_index)
+            # else: 
+            #     test_images.append(img)
+            #     test_labels.append(label_index)
+            train_images.append(img)
+            train_labels.append(label_index) 
+            test_images.append(img)
+            test_labels.append(label_index)
         label_index += 1
     data = [np.array(l) for l in data]
     return data
@@ -95,11 +99,11 @@ print("Getting Data...")
 labels = getDirs()
 train_images, train_labels, test_images, test_labels = getData()
 
-print ("Formaat van de train_images: {}".format(train_images.shape))
-print ("Formaat van de train_labels: {}".format(train_labels.shape))
-print ("Formaat van de test_images: {}".format(test_images.shape))
-print ("Formaat van de test_labels: {}".format(test_labels.shape))
-print ("Grootte van de labels: {}".format(len(labels)))
+print ("Shape of train_images: {}".format(train_images.shape))
+print ("Shape of train_labels: {}".format(train_labels.shape))
+print ("Shape of test_images: {}".format(test_images.shape))
+print ("Shape of test_labels: {}".format(test_labels.shape))
+print ("Size of labels: {}".format(len(labels)))
 
 print("Preparing Data...")
 train_images = scaleData(train_images)
@@ -117,16 +121,21 @@ print("Training...")
 model.fit(train_images, train_labels_cat, epochs=256)
 print("Finished Training!")
 
-print("Plotting Confusing Matrix...")
+print("Preparing Confusing Matrix...")
 pred = np.argmax(model.predict(test_images), axis=1)
 cm = confMatrix(test_labels, pred)
 
-plotMatrix(cm)
-
+print("Printing Metrics...")
 metrics = confEls(cm, labels)
 for t in metrics:
     print("Label {0} heeft TP: {1}, TN: {2}, FP: {3}, FN: {4}".format(*t))
 
+print("Printing Scores ...")
 scores = confData(metrics)
 
 print(scores)
+
+print("Scores zijn TPR: {0}, PPV: {1}, TNR: {2}, FPR: {3}".format(*scores.values()))
+
+print("Plotting Confusing Matrix...")
+plotMatrix(cm)
