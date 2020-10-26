@@ -22,7 +22,7 @@ def plot_matrix(mat, lbl):
 
 def load_images(path):
     # go over each image and load the pixels
-    # put these in a np.array with shape (1000, 75, 75), values in range 0 - 1, in random order
+    # put these in a np.array with shape (1000, 75, 75), nomralized in range 0 - 1, in random order
     # return it, an np.array with matching categories (1000,) , and a dict from category to name {0: "0.0.normal", etc}
     data = np.zeros((1000, 75, 75))
     labels = np.zeros((1000,))
@@ -35,14 +35,32 @@ def load_images(path):
     dirs = [path + "/" + x for x in os.listdir(path) if os.path.isdir(path + "/" + x)]
     for ind, dir in enumerate(dirs):
         labelmap[ind] = dir.split("/")[-1]
-        items = [dir + "/" + x for x in os.listdir(dir) if x[-4:] == ".JPG" or x[-4:] == ".jpg"]
-        for image in items:
+        images = [dir + "/" + x for x in os.listdir(dir) if x[-4:] == ".JPG" or x[-4:] == ".jpg"]
+        for image in images:
             imgdata = imageio.imread(image)
             data[rnd_idx[counter],:,:] = imgdata / 255
             labels[rnd_idx[counter]] = ind
             counter += 1
 
     return data, labels, labelmap
+
+def get_metrics(conf):
+    tp = np.diagonal(conf)
+    fp = np.sum(conf, axis=1) - tp
+    fn = np.sum(conf, axis=0) - tp
+    tn = np.sum(conf) - tp - fp - fn
+    return tp, fp, fn, tn
+
+def get_comb_metrics(tpv, fpv, fnv, tnv):
+    tp = np.sum(tpv)
+    fp = np.sum(fpv)
+    fn = np.sum(fnv)
+    tn = np.sum(tnv)
+    tpr = tp / (tp + fn)
+    ppv = tp / (tp + fp)
+    tnr = tn / (tn + fp)
+    fpr = fp / (fp + tn)
+    return tpr, ppv, tnr, fpr
 
 def create_model():
     model = keras.models.Sequential()
@@ -60,7 +78,7 @@ labels_mat = keras.utils.to_categorical(labels, num_classes=39)
 
 model = create_model()
 print("Training...")
-model.fit(data, labels_mat, epochs=50)
+model.fit(data, labels_mat, epochs=100)
 print("Finished training")
 
 loss, accuracy = model.evaluate(data, labels_mat)
@@ -70,7 +88,13 @@ predictions = model.predict(data)
 pred_cat = np.argmax(predictions, axis=1)
 
 confusion_mat = tf.math.confusion_matrix(labels, pred_cat)
+tp, fp, fn, tn = get_metrics(confusion_mat)
+
 print("Categories:")
 for k, v in labelmap.items():
-    print("{}: {}".format(k, v))
+    print("{}: {}\n    tp: {}, fp: {}, fn: {}, tn: {}".format(k, v, tp[k], fp[k], fn[k], tn[k]))
+
+tpr, ppv, tnr, fpr = get_comb_metrics(tp, fp, fn, tn)
+print("Sensitivity (TPR): {}\nPrecision (PPV): {}\nSpecificity (TNR): {}\nFall-out (FPR): {}".format(tpr, ppv, tnr, fpr))
+
 plot_matrix(confusion_mat, "Confusion matrix")
