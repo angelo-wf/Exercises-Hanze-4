@@ -57,7 +57,7 @@ def confMatrix(labels, pred):
     # waarden (labels). Check de documentatie van tf.math.confusion_matrix
 
     # YOUR CODE HERE
-    pass
+    return tf.math.confusion_matrix(labels, pred)
 
 
 # OPGAVE 2b
@@ -73,7 +73,11 @@ def confEls(conf, labels):
     # Check de documentatie van numpy diagonal om de eerste waarde te bepalen.
 
     # YOUR CODE HERE
-    pass
+    tp = np.diagonal(conf)
+    fp = np.sum(conf, axis=1) - tp
+    fn = np.sum(conf, axis=0) - tp
+    tn = - tp - fp - fn + np.sum(conf)
+    return list(zip(labels, tp, fp, fn, tn))
 
 # OPGAVE 2c
 def confData(metrics):
@@ -83,14 +87,22 @@ def confData(metrics):
     # vorm van een dictionary (de scaffold hiervan is gegeven).
 
     # VERVANG ONDERSTAANDE REGELS MET JE EIGEN CODE
+    metrics = list(zip(*metrics))
 
-    tp = 1
-    fp = 1
-    fn = 1
-    tn = 1
+    # print(list(metrics))
+
+    tp = sum(metrics[1])
+    fp = sum(metrics[2])
+    fn = sum(metrics[3])
+    tn = sum(metrics[4])
 
     # BEREKEN HIERONDER DE JUISTE METRIEKEN EN RETOURNEER DIE
     # ALS EEN DICTIONARY
 
-    rv = {'tpr':0, 'ppv':0, 'tnr':0, 'fpr':0 }
+    tpr = tp / (tp + fn)
+    ppv = tp / (tp + fp)
+    tnr = tn / (tn + fp)
+    fpr = fp / (fp + tn)
+
+    rv = {'tpr':tpr,'ppv':ppv, 'tnr':tnr, 'fpr':fpr }
     return rv
