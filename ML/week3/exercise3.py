@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow import keras
 from random import randint
 import sys
+from tensorflow.keras.utils import to_categorical
 
 from uitwerkingen import *
 
@@ -17,9 +18,9 @@ def plotMatrix(data):
 
 # ==== Laden van de data en zetten van belangrijke variabelen ====
 print ("Laden van de data...")
-data = keras.datasets.fashion_mnist 
+data = keras.datasets.fashion_mnist
 (train_images, train_labels), (test_images, test_labels) = data.load_data()
-labels = ['T-shirt/topje', 'Broek', 'Pullover', 'Jurk', 'Jas', 'Sandalen', 'Shirt', 'Sneaker', 'Tas', 'Lage laars'] 
+labels = ['T-shirt/topje', 'Broek', 'Pullover', 'Jurk', 'Jas', 'Sandalen', 'Shirt', 'Sneaker', 'Tas', 'Lage laars']
 print ("Done.")
 
 print ("Formaat van de train_images: {}".format(train_images.shape))
@@ -54,12 +55,17 @@ test_images = scaleData(test_images)
 
 # ===============  OPGAVE 1c ======================
 
+train_images = train_images.reshape((60000, 28*28))
+test_images = test_images.reshape((10000, 28*28))
+train_labels = to_categorical(train_labels)
+test_labels = to_categorical(test_labels)
+
 print(train_images.shape)
 print(test_images.shape)
 print ("")
 print ("Aanmaken van het model.")
 model = buildModel()
-print ("Trainen van het model...") 
+print ("Trainen van het model...")
 model.fit(train_images, train_labels, epochs=6)
 print ("Training afgerond.")
 
@@ -70,16 +76,14 @@ print ("Bepalen van de confusion matrix van het getrainde netwerk.")
 pred = np.argmax(model.predict(test_images), axis=1)
 cm = confMatrix(test_labels, pred)
 
-sess = tf.Session()
-with sess.as_default():
-    data = cm.eval() 
+data = cm.numpy()
 
-print ("De confusion matrix:") 
+print ("De confusion matrix:")
 if (len(sys.argv)>1 and sys.argv[1]=='skip') :
     print ("Tekenen slaan we over")
 else:
     plotMatrix(data)
-  
+
 print (data)
 print (data.shape)
 
@@ -91,9 +95,3 @@ scores = confData(metrics)
 print (scores)
 
 print ("Klaar. Ga nu verder met de laatste opgave.")
-
-
-
-
-
-
