@@ -55,18 +55,13 @@ test_images = scaleData(test_images)
 
 # ===============  OPGAVE 1c ======================
 
-train_images = train_images.reshape((60000, 28*28))
-test_images = test_images.reshape((10000, 28*28))
-train_labels_cat = to_categorical(train_labels)
-test_labels_cat = to_categorical(test_labels)
-
 print(train_images.shape)
 print(test_images.shape)
 print ("")
 print ("Aanmaken van het model.")
 model = buildModel()
 print ("Trainen van het model...")
-model.fit(train_images, train_labels_cat, epochs=6)
+model.fit(train_images, train_labels, epochs=6)
 print ("Training afgerond.")
 
 

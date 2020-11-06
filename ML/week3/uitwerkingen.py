@@ -41,11 +41,12 @@ def buildModel():
     # YOUR CODE HERE
 
     model = keras.models.Sequential()
-    model.add(keras.layers.Dense(128, activation='relu', input_shape=(28*28,)))
+    model.add(keras.layers.Reshape((28*28,), input_shape=(28, 28)))
+    model.add(keras.layers.Dense(128, activation='relu'))
     model.add(keras.layers.Dense(10, activation='softmax'))
 
     model.compile(optimizer='adam',
-                loss='categorical_crossentropy',
+                loss='sparse_categorical_crossentropy',
                 metrics=['accuracy'])
 
     return model
